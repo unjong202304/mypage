@@ -7,10 +7,10 @@ import struct
 import wave
 from pathlib import Path
 
-SR, DUR = 44100, 38.5
+SR, DUR = 44100, 41.2
 N = int(SR * DUR)
 buf = [0.0] * N
-CUTS = [0, 3.8, 10.2, 16.9, 22.9, 28, 34]
+CUTS = [0, 6.5, 12.9, 19.6, 25.6, 30.7, 36.7]
 random.seed(7)
 
 
@@ -42,9 +42,9 @@ for k, t in enumerate(CUTS):
     swoosh(max(0, t - 0.06))
     pop(t + 0.1, 560 + 40 * (k % 4))
     pop(t + 0.42, 760, 0.12)
-for t in (24.2, 24.7, 25.1, 25.6):  # check marks
+for t in (26.9, 27.4, 27.8, 28.3):  # check marks
     ding(t)
-ding(35.4, 0.16)                       # logo lands
+ding(38.1, 0.16)                       # logo lands
 
 for i in range(N):  # pad
     t = i / SR

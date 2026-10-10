@@ -3,8 +3,8 @@
 import React from "react";
 import {AbsoluteFill, Audio, Img, interpolate, OffthreadVideo, Sequence, staticFile, useCurrentFrame} from "remotion";
 import {abs, Cut, PINK, sp, Slam} from "./AdFast";
-import {center, E0, Pill} from "./AdEasy";
-import {Check, LogoWhite, ring, Stage} from "./parts";
+import {center, Pill} from "./AdEasy";
+import {Check, LogoWhite, Phone, ring, ScreenImg, ScreenVid, Stage} from "./parts";
 import {A, C, prog, sec} from "./theme";
 
 const CL = {extrapolateLeft: "clamp", extrapolateRight: "clamp"} as const;
@@ -85,6 +85,53 @@ const Sub: React.FC<{text: string; top: number; at?: number}> = ({text, top, at 
   <div style={abs({left: 0, right: 0, top, textAlign: "center", fontSize: 46, fontWeight: 600, color: C.mute, opacity: prog(useCurrentFrame(), at, at + 12)})}>{text}</div>
 );
 const Step: React.FC<{n: string}> = ({n}) => <div style={abs({left: 0, right: 0, top: 70, textAlign: "center", fontSize: 40, fontWeight: 900, color: PINK, letterSpacing: "0.1em", opacity: prog(useCurrentFrame(), 0, 10)})}>{n}</div>;
+
+
+// ---- hook (reference structure): claim card -> result shown in fast cuts -> "방법은 이겁니다" ----
+const Cap: React.FC<{lines: [string, string?][]; at: number; top: number; size?: number}> = ({lines, at, top, size = 92}) => {
+  const f = useCurrentFrame();
+  const p = sp(f, at);
+  return (
+    <div style={abs({left: 40, right: 40, top, textAlign: "center", fontSize: size, fontWeight: 900, lineHeight: 1.2, opacity: Math.min(1, p * 2), transform: `scale(${1.25 - 0.25 * p})`,
+      textShadow: "0 0 0 #000, 0 6px 24px rgba(0,0,0,0.8), 4px 4px 0 rgba(0,0,0,0.9), -4px 4px 0 rgba(0,0,0,0.9)", WebkitTextStroke: "3px rgba(0,0,0,0.85)", paintOrder: "stroke fill"})}>
+      {lines.map(([t, hl], i) => <div key={i} style={{color: hl ? "#ff3b5c" : "#fff"}}>{t}</div>)}
+    </div>
+  );
+};
+const HOOK_CUTS: {cap: [string, string?][]; node: () => React.ReactNode}[] = [
+  {cap: [["보내고,"]], node: () => <ScreenVid src="rec-file-link.mp4" />},
+  {cap: [["고르고,"]], node: () => <ScreenImg src="shot-templates.png" />},
+  {cap: [["링크로"], ["받습니다", "hl"]], node: () => <ScreenImg src="shot-delivery.png" />},
+];
+const H: React.FC = () => {
+  const f = useCurrentFrame();
+  const k = f >= 48 && f < 132 ? Math.min(2, Math.floor((f - 48) / 28)) : -1;
+  return (
+    <AbsoluteFill style={{background: f < 48 ? `linear-gradient(160deg,${PINK},${C.redDeep})` : `linear-gradient(180deg,#202124,${C.bg})`, fontFamily: "Pretendard, 'Noto Sans KR', sans-serif", wordBreak: "keep-all", color: C.ivory}}>
+      {f < 48 && (
+        <>
+          <Slam text="새벽까지" at={2} top={560} size={150} />
+          <Slam text="편집하던 쇼츠," at={12} top={760} size={130} color="#fff" />
+        </>
+      )}
+      {k >= 0 && (
+        <>
+          <div style={abs({left: 190, top: 130, transform: `scale(${1.1 - 0.1 * prog((f - 48) % 28, 0, 9)})`, transformOrigin: "50% 40%"})}>
+            <Phone w={700}>{HOOK_CUTS[k].node()}</Phone>
+          </div>
+          <Cap key={k} lines={HOOK_CUTS[k].cap} at={48 + k * 28 + 1} top={k === 2 ? 1380 : 1450} size={118} />
+        </>
+      )}
+      {f >= 132 && (
+        <>
+          <Slam text="방법은" at={134} top={640} size={150} />
+          <Slam text="이겁니다" at={146} top={850} size={210} hl={["이겁니다"]} />
+          <div style={abs({left: 0, right: 0, top: 1250, textAlign: "center", fontSize: 120, color: PINK, opacity: prog(f, 160, 172), transform: `translateY(${8 * Math.sin(f / 4)}px)`})}>▼</div>
+        </>
+      )}
+    </AbsoluteFill>
+  );
+};
 
 // ---- send: file tab, then the link tab (real intake page) ----
 const R1: React.FC = () => (
@@ -183,8 +230,8 @@ const R6: React.FC = () => {
   );
 };
 
-export const REAL_PLAN: [number, number, React.FC, boolean][] = [[0, 3.8, E0, false], [3.8, 10.2, R1, true], [10.2, 16.9, R2, true], [16.9, 22.9, R3, true], [22.9, 28, R4, true], [28, 34, R5, true], [34, 38.5, R6, true]];
-export const REAL_FRAMES = sec(38.5);
+export const REAL_PLAN: [number, number, React.FC, boolean][] = [[0, 6.5, H, false], [6.5, 12.9, R1, true], [12.9, 19.6, R2, true], [19.6, 25.6, R3, true], [25.6, 30.7, R4, true], [30.7, 36.7, R5, true], [36.7, 41.2, R6, true]];
+export const REAL_FRAMES = sec(41.2);
 
 export const AdReal: React.FC<{narration?: boolean}> = ({narration = false}) => (
   <AbsoluteFill style={{background: C.bg}}>
