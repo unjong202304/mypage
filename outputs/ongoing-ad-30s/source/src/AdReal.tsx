@@ -6,10 +6,11 @@ import {abs, Cut, PINK, sp, Slam} from "./AdFast";
 import {center, Pill} from "./AdEasy";
 import {Check, LogoWhite, ring, Stage} from "./parts";
 import {A, C, prog, sec} from "./theme";
+import {MOUTH} from "./mouthData";
 
 const CL = {extrapolateLeft: "clamp", extrapolateRight: "clamp"} as const;
 // The preview is the WHOLE page (never cropped), as large as the safe area allows; the parts that must be read are lifted out into a callout (see Callout).
-const FL = 280, FT = 330, FW = 520;
+const FL = 380, FT = 330, FW = 520;
 const crop = (uw: number) => ({px: (ux: number) => FL + (ux * FW) / uw, py: (uy: number) => FT + (uy * FW) / uw});
 
 const Tap: React.FC<{x: number; y: number; at: number}> = ({x, y, at}) => {
@@ -162,10 +163,10 @@ const R4: React.FC = () => {
       {items.map((t, i) => {
         const p = sp(f, 24 + i * 14), ck = prog(f, 38 + i * 14, 50 + i * 14);
         return center(380 + i * 190, (
-          <div style={{width: 760, height: 150, borderRadius: 36, background: C.panel, border: `3px solid ${ck > 0.5 ? "#2f8f5b" : C.line}`, display: "flex", alignItems: "center", gap: 36, padding: "0 50px", fontSize: 64, fontWeight: 900, opacity: Math.min(1, p * 2), transform: `translateX(${(1 - p) * 120}px)`}}>
+          <div style={{width: 560, height: 150, borderRadius: 36, background: C.panel, border: `3px solid ${ck > 0.5 ? "#2f8f5b" : C.line}`, display: "flex", alignItems: "center", gap: 36, padding: "0 36px", fontSize: 56, fontWeight: 900, opacity: Math.min(1, p * 2), transform: `translateX(${(1 - p) * 120}px)`}}>
             <Check p={ck} size={86} /><span>{t}</span><span style={{marginLeft: "auto", fontSize: 38, color: C.mute, fontWeight: 600}}>{ck > 0.5 ? "확인 완료" : "확인 중"}</span>
           </div>
-        ), {key: t});
+        ), {key: t, left: 340, right: 140});
       })}
       <div style={abs({left: 0, right: 0, top: 1150, textAlign: "center", fontSize: 26, color: C.mute})}>※ 확인 항목을 설명하기 위한 그래픽입니다</div>
     </Stage>
@@ -223,28 +224,89 @@ type Ov = {t0: number; t1: number; kind: "sticker" | "point" | "burst"; x: numbe
 const OV: Ov[] = [
   // send (narration 6.6-11.8)
   {t0: 6.7, t1: 8.5, kind: "sticker", x: 540, y: 1105, text: "📱 폰 영상 그대로 OK!", rot: -3},
-  {t0: 7.0, t1: 8.4, kind: "point", x: 436, y: 712, dir: "up"},
+  {t0: 7.0, t1: 8.4, kind: "point", x: 536, y: 712, dir: "up"},
   {t0: 8.7, t1: 10.5, kind: "sticker", x: 540, y: 1105, text: "🔗 링크만 붙여넣기!", rot: 2},
-  {t0: 9.0, t1: 10.4, kind: "point", x: 668, y: 712, dir: "up"},
+  {t0: 9.0, t1: 10.4, kind: "point", x: 768, y: 712, dir: "up"},
   {t0: 10.8, t1: 12.6, kind: "sticker", x: 540, y: 1105, text: "누르면 끝!", rot: -2, color: "#ff6f91"},
-  {t0: 11.4, t1: 12.2, kind: "burst", x: 539, y: 818, text: "딸깍!"},
+  {t0: 11.4, t1: 12.2, kind: "burst", x: 639, y: 818, text: "딸깍!"},
   // hand over (13.0-19.0)
   {t0: 14.3, t1: 16.2, kind: "sticker", x: 540, y: 1105, text: "맡기면 알아서 척척 ✨", rot: -3},
-  {t0: 14.7, t1: 16.0, kind: "point", x: 669, y: 600, dir: "up"},
+  {t0: 14.7, t1: 16.0, kind: "point", x: 769, y: 600, dir: "up"},
   {t0: 16.5, t1: 19.0, kind: "sticker", x: 540, y: 1105, text: "직접 정해도 OK ✋", rot: 3},
-  {t0: 17.2, t1: 18.6, kind: "point", x: 373, y: 600, dir: "up"},
+  {t0: 17.2, t1: 18.6, kind: "point", x: 473, y: 600, dir: "up"},
   // templates + title (19.7-24.2)
   {t0: 20.9, t1: 22.6, kind: "sticker", x: 540, y: 1105, text: "👀 미리 보고 골라요", rot: -2},
-  {t0: 21.1, t1: 22.4, kind: "point", x: 634, y: 1040, dir: "up"},
+  {t0: 21.1, t1: 22.4, kind: "point", x: 734, y: 1040, dir: "up"},
   {t0: 22.8, t1: 25.2, kind: "sticker", x: 540, y: 1105, text: "제목은 내 손으로 ✍️", rot: 2},
-  {t0: 23.5, t1: 24.8, kind: "point", x: 342, y: 836, dir: "up"},
+  {t0: 23.5, t1: 24.8, kind: "point", x: 442, y: 836, dir: "up"},
   // review (25.7-29.8)
   {t0: 26.2, t1: 29.9, kind: "sticker", x: 540, y: 1210, text: "마지막은 사람이 한 번 더! 👀", size: 54, rot: -2},
   // receive (30.8-35.1)
   {t0: 31.1, t1: 34.0, kind: "sticker", x: 540, y: 1105, text: "💬 메신저로 링크 도착!", rot: -2},
-  {t0: 35.0, t1: 35.8, kind: "burst", x: 480, y: 890, text: "톡!"},
+  {t0: 35.0, t1: 35.8, kind: "burst", x: 580, y: 890, text: "톡!"},
   {t0: 34.4, t1: 36.6, kind: "sticker", x: 540, y: 1105, text: "눌러서 확인, 끝!", rot: 2, color: "#ff6f91"},
 ];
+// ---- 고잉이: an original editor mascot. Mouth follows the narration loudness (mouthData.ts), the arm points at whatever the narration is pointing at. ----
+const MX = 20, MY = 560, SHX = MX + 250, SHY = MY + 330;   // canvas position of the mascot and of its pointing shoulder
+const idleArm = 95;
+const pointAt = (t: number) => {
+  const tg = OV.filter((o) => o.kind === "point" || o.kind === "burst").sort((a, b) => a.t0 - b.t0);
+  const ang = (o: Ov) => (Math.atan2(o.y - SHY, o.x - SHX) * 180) / Math.PI;
+  let cur = idleArm, prev = idleArm;
+  for (const o of tg) {
+    if (t >= o.t0) {
+      const k = Math.min(1, (t - o.t0) / 0.25), back = t > o.t1 ? Math.min(1, (t - o.t1) / 0.25) : 0;
+      const a = prev + (ang(o) - prev) * k;
+      cur = t > o.t1 ? a + (idleArm - a) * back : a;
+      prev = t > o.t1 ? idleArm : ang(o);
+    }
+  }
+  return cur;
+};
+const Mascot: React.FC = () => {
+  const f = useCurrentFrame(), t = f / 30;
+  if (t < 6.5 || t > 36.7) return null;
+  const lvl = MOUTH[Math.min(f, MOUTH.length - 1)] ?? 0;
+  const p = sp(f, 195), out = 1 - prog(f, 1068, 1100);
+  const blink = (f % 96) < 4 ? 0.1 : 1;
+  const cheer = OV.some((o) => o.kind === "sticker" && t >= o.t0 && t <= o.t1);
+  const arm = pointAt(t);
+  const bob = Math.sin(f / 9) * 4 - lvl * 6;
+  const skin = "#ffd9b8", dark = "#1b1b1f", ruby = "#bd1e51";
+  return (
+    <svg width={340} height={470} viewBox="0 0 340 470" style={{position: "absolute", left: MX, top: MY, opacity: Math.min(1, p * 2) * out, transform: `translateY(${bob + (1 - p) * 60}px) rotate(${Math.sin(f / 14) * 1.5}deg)`, transformOrigin: "170px 460px", filter: "drop-shadow(0 18px 24px rgba(0,0,0,0.5))"}}>
+      <rect x={70} y={250} width={200} height={215} rx={64} fill={ruby} />
+      <path d="M135 252 Q170 285 205 252" fill="none" stroke="#fff" strokeWidth={8} strokeLinecap="round" />
+      <path d="M150 275 v40 M190 275 v40" stroke="#fff" strokeWidth={6} strokeLinecap="round" />
+      <ellipse cx={92} cy={350} rx={22} ry={60} fill={ruby} transform="rotate(8 92 350)" />
+      <circle cx={88} cy={410} r={24} fill={skin} />
+      <circle cx={170} cy={150} r={105} fill={skin} />
+      <path d="M62 140 Q170 -20 278 140 Q250 96 170 92 Q90 96 62 140Z" fill="#26262b" />
+      <path d="M72 140 Q170 0 268 140" fill="none" stroke="#fff" strokeWidth={13} strokeLinecap="round" />
+      <circle cx={64} cy={160} r={27} fill={ruby} stroke="#fff" strokeWidth={7} />
+      <circle cx={276} cy={160} r={27} fill={ruby} stroke="#fff" strokeWidth={7} />
+      <path d="M276 184 Q268 232 222 236" fill="none" stroke="#fff" strokeWidth={6} strokeLinecap="round" />
+      <circle cx={218} cy={236} r={10} fill={dark} />
+      {[135, 205].map((x) => (
+        <g key={x}>
+          <ellipse cx={x} cy={160} rx={13} ry={18 * blink + 1} fill={dark} />
+          {blink > 0.5 && <circle cx={x + 4} cy={153} r={4.5} fill="#fff" />}
+          <path d={`M${x - 20} ${cheer ? 118 : 126} Q${x} ${cheer ? 104 : 116} ${x + 20} ${cheer ? 118 : 126}`} fill="none" stroke={dark} strokeWidth={6} strokeLinecap="round" />
+        </g>
+      ))}
+      <circle cx={108} cy={192} r={16} fill="#ff9bb0" opacity={0.65} />
+      <circle cx={232} cy={192} r={16} fill="#ff9bb0" opacity={0.65} />
+      <ellipse cx={170} cy={212} rx={22 + lvl * 6} ry={4 + 24 * lvl} fill="#3a1220" />
+      {lvl > 0.3 && <ellipse cx={170} cy={212 + (4 + 24 * lvl) * 0.5} rx={13} ry={Math.min(9, 3 + 8 * lvl)} fill="#ff6f91" />}
+      <g transform={`translate(250 330) rotate(${arm})`}>
+        <rect x={0} y={-19} width={118} height={38} rx={19} fill={ruby} />
+        <circle cx={128} cy={0} r={26} fill={skin} />
+        <rect x={136} y={-8} width={44} height={16} rx={8} fill={skin} />
+      </g>
+    </svg>
+  );
+};
+
 const Meme: React.FC<{o: Ov}> = ({o}) => {
   const f = useCurrentFrame(), t = f / 30;
   if (t < o.t0 || t > o.t1) return null;
@@ -274,6 +336,7 @@ export const REAL_FRAMES = sec(41.2);
 export const AdReal: React.FC<{narration?: boolean}> = ({narration = false}) => (
   <AbsoluteFill style={{background: C.bg}}>
     {REAL_PLAN.map(([a, b, Comp, wipe], i) => <Sequence key={i} from={sec(a)} durationInFrames={sec(b - a)}><Cut wipe={wipe} punch={false}><Comp /></Cut></Sequence>)}
+    <Mascot />
     {OV.map((o, i) => <Meme key={i} o={o} />)}
     <Audio src={staticFile("audio_real.wav")} volume={narration ? 0.5 : 1} />
     {narration && <Audio src={staticFile("narration_real.wav")} />}
