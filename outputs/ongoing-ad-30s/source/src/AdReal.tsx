@@ -23,9 +23,9 @@ const Box: React.FC<{x: number; y: number; w: number; h: number; at: number}> = 
   return <div style={abs({left: x, top: y, width: w, height: h, borderRadius: 22, opacity: p, ...ring(p)})} />;
 };
 // Slow push-in on the phone with a focus zoom between a and b (frames), easing back at c.
-const Zoom: React.FC<{ox: number; oy: number; a: number; b: number; c: number; amount?: number; children: React.ReactNode}> = ({ox, oy, a, b, c, amount = 0.2, children}) => {
+const Zoom: React.FC<{ox: number; oy: number; a: number; b: number; c: number; amount?: number; enabled?: boolean; children: React.ReactNode}> = ({ox, oy, a, b, c, amount = 0.2, enabled = false, children}) => {
   const f = useCurrentFrame();
-  const z = 1 + 0.02 * prog(f, 0, 200) + amount * (prog(f, a, b) - prog(f, b + 6, c));
+  const z = enabled ? 1 + amount * (prog(f, a, b) - prog(f, b + 6, c)) : 1;
   return <div style={abs({inset: 0, transformOrigin: `${ox}px ${oy}px`, transform: `scale(${z})`})}>{children}</div>;
 };
 
@@ -73,7 +73,7 @@ const PhoneFrame: React.FC<{children: React.ReactNode}> = ({children}) => {
   const f = useCurrentFrame();
   const s = sp(f, 4);
   return (
-    <div style={abs({left: PL, top: PT, width: PW, borderRadius: PW * 0.11, padding: PW * 0.022, background: "#0b0b0d", boxShadow: "0 70px 130px rgba(0,0,0,0.65), 0 0 0 2px #2b2b32", transform: `translateY(${(1 - s) * 220}px)`, opacity: Math.min(1, s * 2.4)})}>
+    <div style={abs({left: PL, top: PT, width: PW, borderRadius: PW * 0.11, padding: PW * 0.022, background: "#0b0b0d", boxShadow: "0 70px 130px rgba(0,0,0,0.65), 0 0 0 2px #2b2b32", opacity: Math.min(1, s * 2.4)})}>
       <div style={{position: "relative", width: "100%", paddingTop: `${(844 / 390) * 100}%`, borderRadius: PW * 0.09, overflow: "hidden", background: C.ivory}}><div style={{position: "absolute", inset: 0}}>{children}</div></div>
     </div>
   );
@@ -116,7 +116,7 @@ const H: React.FC = () => {
       )}
       {k >= 0 && (
         <>
-          <div style={abs({left: 190, top: 130, transform: `scale(${1.1 - 0.1 * prog((f - 48) % 28, 0, 9)})`, transformOrigin: "50% 40%"})}>
+          <div style={abs({left: 190, top: 130, })}>
             <Phone w={700}>{HOOK_CUTS[k].node()}</Phone>
           </div>
           <Cap key={k} lines={HOOK_CUTS[k].cap} at={48 + k * 28 + 1} top={k === 2 ? 1380 : 1450} size={118} />
@@ -170,7 +170,7 @@ const R3: React.FC = () => {
       <Step n="STEP 02" />
       <div style={abs({inset: 0, opacity: 1 - sw})}><Slam text="템플릿은 미리 보고" at={2} top={120} size={86} hl={["미리"]} /></div>
       <div style={abs({inset: 0, opacity: sw})}><Slam text="제목도 직접" at={102} top={120} size={96} hl={["직접"]} /></div>
-      <Zoom ox={540} oy={1030} a={30} b={54} c={96} amount={0.14}>
+      <Zoom ox={px(178, 375)} oy={py(406, 375)} a={140} b={158} c={178} amount={0.3} enabled>
         <PhoneFrame><Shot src="shot-templates.png" o={1 - sw} /><Shot src="shot-title.png" o={sw} /></PhoneFrame>
         {f < 100 && <Box x={px(181, 375)} y={py(347, 375)} w={242} h={248} at={44} />}
         <Cursor stops={[{x: px(255, 375), y: py(424, 375), t: 44}, {x: px(45, 375), y: py(346, 375), t: 132}]} />
@@ -235,7 +235,7 @@ export const REAL_FRAMES = sec(41.2);
 
 export const AdReal: React.FC<{narration?: boolean}> = ({narration = false}) => (
   <AbsoluteFill style={{background: C.bg}}>
-    {REAL_PLAN.map(([a, b, Comp, wipe], i) => <Sequence key={i} from={sec(a)} durationInFrames={sec(b - a)}><Cut wipe={wipe}><Comp /></Cut></Sequence>)}
+    {REAL_PLAN.map(([a, b, Comp, wipe], i) => <Sequence key={i} from={sec(a)} durationInFrames={sec(b - a)}><Cut wipe={wipe} punch={false}><Comp /></Cut></Sequence>)}
     <Audio src={staticFile("audio_real.wav")} volume={narration ? 0.5 : 1} />
     {narration && <Audio src={staticFile("narration_real.wav")} />}
   </AbsoluteFill>

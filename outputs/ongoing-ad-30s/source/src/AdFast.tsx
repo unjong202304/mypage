@@ -34,11 +34,11 @@ const Wipe: React.FC = () => {
 };
 
 // Hard cut with a small punch-in; optional wipe.
-export const Cut: React.FC<{wipe?: boolean; children: React.ReactNode}> = ({wipe, children}) => {
+export const Cut: React.FC<{wipe?: boolean; punch?: boolean; children: React.ReactNode}> = ({wipe, punch = true, children}) => {
   const f = useCurrentFrame();
   return (
     <AbsoluteFill>
-      <div style={abs({inset: 0, transform: `scale(${1 + 0.08 * (1 - prog(f, 0, 9))})`})}>{children}</div>
+      <div style={abs({inset: 0, transform: punch ? `scale(${1 + 0.08 * (1 - prog(f, 0, 9))})` : undefined})}>{children}</div>
       {wipe && <Wipe />}
     </AbsoluteFill>
   );
