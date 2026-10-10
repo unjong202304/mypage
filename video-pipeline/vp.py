@@ -139,13 +139,17 @@ def research(job, *repos):
     p.write_text(json.dumps(list(have.values()), ensure_ascii=False, indent=1))
 
 
+def spoken(b):
+    return b.get("speak") or b["say"]  # `say` is shown, `speak` is what is read aloud (numbers/English spelled in hangul)
+
+
 def script(job):
     """Validate the LLM-written script.json (a storyboard of beats), emit script.txt (to the shooter / TTS) and name hints."""
     job = Path(job)
     sc = json.loads((job / "script.json").read_text())
     beats = sc["beats"]
     assert beats and all(b.get("say") for b in beats), "every beat needs `say`"
-    (job / "script.txt").write_text("\n".join(b["say"] for b in beats) + "\n")
+    (job / "script.txt").write_text("\n".join(spoken(b) for b in beats) + "\n")
     d = decisions(job)
     repos = [v["repo"].split("/")[-1] for b in beats for v in b.get("visuals", []) if "repo" in v]
     d["vocab"] = repos + sc.get("vocab", [])
@@ -197,8 +201,9 @@ def captions(job):
     m, words, breaks, sj = load(job), None, (), Path(job) / "script.json"
     words = m["words_edit"]
     if sj.exists():  # scripted speech: show the script's words, never the transcript's spelling; no caption spans two sentences
-        sents = [b["say"] for b in json.loads(sj.read_text())["beats"]]
-        words = script_words(words, segment(words, sents), sents)
+        beats = json.loads(sj.read_text())["beats"]
+        sents = [b["say"] for b in beats]
+        words = script_words(words, segment(words, [spoken(b) for b in beats]), sents)
         breaks = set(accumulate(len(x.split()) for x in sents[:-1]))
     m["captions"] = chunk(words, decisions(job).get("emphasis", []), breaks=breaks)
     save(job, m)
@@ -213,7 +218,7 @@ def scenes(job):
     beats = sc["beats"]
     facts = {r["repo"]: r for r in json.loads((job / "research.json").read_text())} if (job / "research.json").exists() else {}
     words = m["words_edit"]
-    runs = segment(words, [b["say"] for b in beats])
+    runs = segment(words, [spoken(b) for b in beats])
     starts = [words[i]["s"] for i, _ in runs]
     starts[0] = 0.0
     ends = starts[1:] + [m["duration_edit"]]
@@ -284,7 +289,7 @@ def pipeline(job, src, line="human"):
 def voice(job):
     from lines import ai
     script(job)
-    ai.produce((Path(job) / "script.txt").read_text(), Path(job) / "footage.mp4")
+    ai.produce([spoken(b) for b in json.loads((Path(job) / "script.json").read_text())["beats"]], Path(job) / "footage.mp4")
 
 
 def make(job):

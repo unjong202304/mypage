@@ -33,10 +33,22 @@ def fake_open(req, timeout=0):
     return io.BytesIO(mp3)
 
 
+bodies = []
+
+
+def fake_open(req, timeout=0):
+    seen.update(url=req.full_url, key=req.get_header("Xi-api-key"))
+    bodies.append(json.loads(req.data))
+    return io.BytesIO(mp3)
+
+
 with mock.patch("urllib.request.urlopen", fake_open):
-    out = ai.produce("안녕하세요", tmp / "footage.mp4")
+    out = ai.produce(["안녕하세요", "반갑습니다"], tmp / "footage.mp4", speed=1.1)
 assert "/text-to-speech/voiceX?output_format=mp3_44100_128" in seen["url"] and seen["key"] == "sk-abcd1234", seen
-assert seen["body"] == {"text": "안녕하세요", "model_id": "eleven_multilingual_v2"}, seen
+assert len(bodies) == 2 and bodies[0]["voice_settings"] == {"speed": 1.1} and bodies[0]["next_text"] == "반갑습니다" and "previous_text" not in bodies[0], bodies
+assert bodies[1]["previous_text"] == "안녕하세요" and "next_text" not in bodies[1], bodies
+dur = float(subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", out], capture_output=True, text=True).stdout)
+assert 2.1 < dur < 2.6, dur  # two 1s clips + a 0.12s pause each
 info = json.loads(subprocess.run(["ffprobe", "-v", "error", "-print_format", "json", "-show_streams", out], capture_output=True, check=True).stdout)
 assert {s["codec_type"] for s in info["streams"]} == {"video", "audio"}
 assert (info["streams"][0]["width"], info["streams"][0]["height"]) == (720, 1280)
