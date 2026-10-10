@@ -14,6 +14,7 @@ HERE = Path(__file__).parent
 TMP = HERE / "public" / "_narration"
 LINES = json.loads((HERE / os.environ.get("NARR_JSON", "narration.json")).read_text())
 OUTWAV = os.environ.get("NARR_OUT", "narration.wav")
+DUR = float(os.environ.get("NARR_DUR", "30"))
 VOICE = os.environ.get("ELEVENLABS_VOICE_ID") or sys.exit("set ELEVENLABS_VOICE_ID")
 SPEED = float(os.environ.get("VP_SPEED", "1.1"))  # ElevenLabs accepts 0.7-1.2
 TRIM = "silenceremove=start_periods=1:start_threshold=-50dB,areverse,silenceremove=start_periods=1:start_threshold=-50dB,areverse"
@@ -57,6 +58,6 @@ for i, ln in enumerate(LINES):
     parts.append(wav)
 
 f = ";".join(f"[{i}:a]adelay={int(ln['at'] * 1000)}|{int(ln['at'] * 1000)}[a{i}]" for i, ln in enumerate(LINES))
-f += ";" + "".join(f"[a{i}]" for i in range(len(parts))) + f"amix=inputs={len(parts)}:normalize=0:duration=longest,loudnorm=I=-16:TP=-1.5:LRA=11,apad,atrim=0:30[a]"
+f += ";" + "".join(f"[a{i}]" for i in range(len(parts))) + f"amix=inputs={len(parts)}:normalize=0:duration=longest,loudnorm=I=-16:TP=-1.5:LRA=11,apad,atrim=0:{DUR}[a]"
 ff(*[x for p in parts for x in ("-i", p)], "-filter_complex", f, "-map", "[a]", "-ar", 44100, "-ac", 1, HERE / "public" / OUTWAV)
 print("wrote", HERE / "public" / OUTWAV)

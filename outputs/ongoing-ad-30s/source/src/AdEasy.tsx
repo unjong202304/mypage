@@ -6,15 +6,15 @@ import {Check, LogoWhite, ring, Stage} from "./parts";
 import {C, prog, sec} from "./theme";
 
 const CL = {extrapolateLeft: "clamp", extrapolateRight: "clamp"} as const;
-const center = (top: number, children: React.ReactNode, extra: React.CSSProperties = {}) => (
+export const center = (top: number, children: React.ReactNode, extra: React.CSSProperties = {}) => (
   <div style={abs({left: 0, right: 0, top, display: "flex", justifyContent: "center", ...extra})}>{children}</div>
 );
-const Pill: React.FC<{text: string; p?: number; bg?: string; size?: number}> = ({text, p = 1, bg = "rgba(255,255,255,0.1)", size = 40}) => (
+export const Pill: React.FC<{text: string; p?: number; bg?: string; size?: number}> = ({text, p = 1, bg = "rgba(255,255,255,0.1)", size = 40}) => (
   <span style={{display: "inline-block", padding: "16px 34px", borderRadius: 999, fontSize: size, fontWeight: 800, background: bg, opacity: Math.min(1, p * 2), transform: `scale(${0.8 + 0.2 * p})`, border: `2px solid ${C.line}`}}>{text}</span>
 );
 
 // ---- 0-4s: the 2 a.m. hook, with a clock that spins to 2:00 ----
-const E0: React.FC = () => {
+export const E0: React.FC = () => {
   const f = useCurrentFrame();
   const t = prog(f, 0, 64);
   const ticks = Array.from({length: 12}, (_, i) => i);
