@@ -3,16 +3,14 @@
 import React from "react";
 import {AbsoluteFill, Audio, Img, interpolate, OffthreadVideo, Sequence, staticFile, useCurrentFrame} from "remotion";
 import {abs, Cut, PINK, sp, Slam} from "./AdFast";
-import {CAPTIONS} from "./captionData";
 import {center, Pill} from "./AdEasy";
-import {Check, LogoWhite, Phone, ring, ScreenImg, ScreenVid, Stage} from "./parts";
+import {Check, LogoWhite, ring, Stage} from "./parts";
 import {A, C, prog, sec} from "./theme";
 
 const CL = {extrapolateLeft: "clamp", extrapolateRight: "clamp"} as const;
-const PW = 420, PL = 330, PT = 520;               // phone width / left / top on the 1080x1920 canvas
-const SX = (PW - 2 * 0.022 * PW) / 390;           // screen px per UI px
-const px = (ux: number, w = 390) => PL + 0.022 * PW + ux * (PW - 0.044 * PW) / w;
-const py = (uy: number, w = 390) => PT + 0.022 * PW + uy * (PW - 0.044 * PW) / w;
+// The preview is a window onto the top part of the real page, enlarged: left/top/size on the 1080x1920 canvas. Everything stays above y=1470 and left of x=940.
+const FL = 170, FT = 330, FW = 760, FH = 900;
+const crop = (uw: number, uy0: number) => ({px: (ux: number) => FL + (ux * FW) / uw, py: (uy: number) => FT + ((uy - uy0) * FW) / uw});
 
 const Tap: React.FC<{x: number; y: number; at: number}> = ({x, y, at}) => {
   const p = interpolate(useCurrentFrame(), [at, at + 16], [0, 1], CL);
@@ -57,35 +55,35 @@ const Cursor: React.FC<{stops: Stop[]}> = ({stops}) => {
     </>
   );
 };
-// Bottom caption that swaps as each step happens: ① ② ③
-const Say: React.FC<{items: {t: number; text: string}[]}> = ({items}) => {
+// Window onto a real page (UI px -> canvas px). uw = page width in UI px, uy0 = first UI row shown.
+const Frame: React.FC<{uw: number; uh: number; uy0: number; children: React.ReactNode}> = ({uw, uh, uy0, children}) => {
   const f = useCurrentFrame();
-  let k = -1;
-  items.forEach((it, i) => { if (f >= it.t) k = i; });
-  if (k < 0) return null;
-  const p = sp(f, items[k].t);
-  return center(440, (
-    <div style={{display: "flex", alignItems: "center", gap: 20, padding: "9px 30px 9px 14px", borderRadius: 999, background: C.red, fontSize: 36, fontWeight: 900, boxShadow: `0 8px 0 ${C.redDeep}`, transform: `scale(${0.8 + 0.2 * p})`, opacity: Math.min(1, p * 2)}}>
-      <span style={{width: 52, height: 52, borderRadius: 26, background: C.ivory, color: C.redDeep, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 34}}>{k + 1}</span>{items[k].text}
-    </div>
-  ));
-};
-const PhoneFrame: React.FC<{children: React.ReactNode}> = ({children}) => {
-  const f = useCurrentFrame();
-  const s = sp(f, 4);
+  const o = Math.min(1, sp(f, 3) * 2.4), sc = FW / uw;
   return (
-    <div style={abs({left: PL, top: PT, width: PW, borderRadius: PW * 0.11, padding: PW * 0.022, background: "#0b0b0d", boxShadow: "0 70px 130px rgba(0,0,0,0.65), 0 0 0 2px #2b2b32", opacity: Math.min(1, s * 2.4)})}>
-      <div style={{position: "relative", width: "100%", paddingTop: `${(844 / 390) * 100}%`, borderRadius: PW * 0.09, overflow: "hidden", background: C.ivory}}><div style={{position: "absolute", inset: 0}}>{children}</div></div>
+    <div style={abs({left: FL - 14, top: FT - 14, width: FW + 28, height: FH + 28, borderRadius: 52, background: "#0b0b0d", boxShadow: "0 50px 110px rgba(0,0,0,0.6), 0 0 0 2px #2b2b32", opacity: o})}>
+      <div style={abs({left: 14, top: 14, width: FW, height: FH, borderRadius: 40, overflow: "hidden", background: C.ivory})}>
+        <div style={abs({left: 0, top: -uy0 * sc, width: uw * sc, height: uh * sc})}>{children}</div>
+      </div>
     </div>
   );
 };
-const fillCss: React.CSSProperties = {width: "100%", height: "100%", objectFit: "cover", objectPosition: "top"};
+const fillCss: React.CSSProperties = {width: "100%", height: "100%", objectFit: "fill"};
 const Vid: React.FC<{src: string; from: number; rate: number}> = ({src, from, rate}) => <OffthreadVideo src={A(src)} startFrom={from} playbackRate={rate} muted style={fillCss} />;
 const Shot: React.FC<{src: string; o?: number}> = ({src, o = 1}) => <Img src={A(src)} style={{...fillCss, position: "absolute", inset: 0, opacity: o}} />;
-const HOOK_CUTS: {cap: [string, string?][]; node: () => React.ReactNode}[] = [
-  {cap: [["보내고,"]], node: () => <ScreenVid src="rec-file-link.mp4" />},
-  {cap: [["고르고,"]], node: () => <ScreenImg src="shot-templates.png" />},
-  {cap: [["링크로"], ["받습니다", "hl"]], node: () => <ScreenImg src="shot-delivery.png" />},
+// scene headline pill (top safe row)
+const Head: React.FC<{n: string; text: string}> = ({n, text}) => {
+  const p = sp(useCurrentFrame(), 2);
+  return center(228, (
+    <div style={{display: "flex", alignItems: "center", gap: 18, padding: "10px 34px 10px 14px", borderRadius: 999, background: C.red, fontSize: 52, fontWeight: 900, boxShadow: `0 8px 0 ${C.redDeep}`, transform: `scale(${0.8 + 0.2 * p})`, opacity: Math.min(1, p * 2)}}>
+      <span style={{width: 66, height: 66, borderRadius: 33, background: C.ivory, color: C.redDeep, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 44}}>{n}</span>{text}
+    </div>
+  ));
+};
+
+const HOOK_CUTS = [
+  () => <Frame uw={390} uh={844} uy0={60}><Vid src="rec-file-link.mp4" from={0} rate={1} /></Frame>,
+  () => <Frame uw={375} uh={812} uy0={130}><Shot src="shot-templates.png" /></Frame>,
+  () => <Frame uw={390} uh={844} uy0={170}><Shot src="shot-delivery.png" /></Frame>,
 ];
 const H: React.FC = () => {
   const f = useCurrentFrame();
@@ -98,13 +96,7 @@ const H: React.FC = () => {
           <Slam text="편집하던 쇼츠," at={12} top={760} size={130} color="#fff" />
         </>
       )}
-      {k >= 0 && (
-        <>
-          <div style={abs({left: 330, top: 470})}>
-            <Phone w={420}>{HOOK_CUTS[k].node()}</Phone>
-          </div>
-        </>
-      )}
+      {k >= 0 && HOOK_CUTS[k]()}
       {f >= 132 && (
         <>
           <Slam text="방법은" at={134} top={640} size={150} />
@@ -117,39 +109,37 @@ const H: React.FC = () => {
 };
 
 // ---- send: file tab, then the link tab (real intake page) ----
+const C1 = crop(390, 60);
 const R1: React.FC = () => (
   <Stage>
-    <Zoom ox={540} oy={800} a={78} b={104} c={176} amount={0.15}>
-      <PhoneFrame><Vid src="rec-file-link.mp4" from={75} rate={0.85} /></PhoneFrame>
-      <Cursor stops={[{x: px(117), y: py(269), t: 30}, {x: px(291), y: py(269), t: 98}, {x: px(194), y: py(366), t: 150}]} />
-    </Zoom>
-    <Say items={[{t: 30, text: "폰에 저장된 촬영본 바로 보내기"}, {t: 98, text: "롱폼 링크만 보내기"}, {t: 150, text: "영상 불러오기"}]} />
+    <Head n="1" text="간단하게 보내기" />
+    <Frame uw={390} uh={844} uy0={60}><Vid src="rec-file-link.mp4" from={75} rate={0.85} /></Frame>
+    <Cursor stops={[{x: C1.px(117), y: C1.py(269), t: 30}, {x: C1.px(291), y: C1.py(269), t: 98}, {x: C1.px(194), y: C1.py(366), t: 150}]} />
   </Stage>
 );
 
 // ---- hand over: let ongoing choose, or choose yourself (real mode switch) ----
 const R2: React.FC = () => (
   <Stage>
-    <Zoom ox={540} oy={640} a={14} b={36} c={110} amount={0.15}>
-      <PhoneFrame><Vid src="rec-auto-manual.mp4" from={30} rate={0.8} /></PhoneFrame>
-      <Cursor stops={[{x: px(292), y: py(163), t: 62}, {x: px(70), y: py(163), t: 138}]} />
-    </Zoom>
-    <Say items={[{t: 62, text: "온고잉이 알아서"}, {t: 138, text: "내가 구간 정해주기"}]} />
+    <Head n="2" text="맡기기 · 직접 정하기" />
+    <Frame uw={390} uh={844} uy0={60}><Vid src="rec-auto-manual.mp4" from={30} rate={0.8} /></Frame>
+    <Cursor stops={[{x: C1.px(292), y: C1.py(163), t: 62}, {x: C1.px(70), y: C1.py(163), t: 138}]} />
   </Stage>
 );
 
 // ---- templates, then the title (real pages; the cards are a QA capture) ----
+const C3 = crop(375, 130);
 const R3: React.FC = () => {
   const f = useCurrentFrame();
   const sw = prog(f, 100, 114);
   return (
     <Stage>
-        <Zoom ox={px(178, 375)} oy={py(406, 375)} a={140} b={158} c={178} amount={0.18} enabled>
-        <PhoneFrame><Shot src="shot-templates.png" o={1 - sw} /><Shot src="shot-title.png" o={sw} /></PhoneFrame>
-        {f < 100 && <Box x={px(181, 375)} y={py(347, 375)} w={242} h={248} at={44} />}
-        <Cursor stops={[{x: px(255, 375), y: py(424, 375), t: 44}, {x: px(45, 375), y: py(346, 375), t: 132}]} />
+      <Head n="2" text="미리 보고 고르기" />
+      <Zoom ox={FL + FW} oy={FT} a={140} b={158} c={178} amount={0.14} enabled>
+        <Frame uw={375} uh={812} uy0={130}><Shot src="shot-templates.png" o={1 - sw} /><Shot src="shot-title.png" o={sw} /></Frame>
+        {f < 100 && <Box x={C3.px(181)} y={C3.py(347)} w={(148 * FW) / 375} h={(152 * FW) / 375} at={44} />}
+        <Cursor stops={[{x: C3.px(255), y: C3.py(424), t: 44}, {x: C3.px(45), y: C3.py(346), t: 132}]} />
       </Zoom>
-      <Say items={[{t: 44, text: "템플릿 고르기"}, {t: 132, text: "내가 제목 정하기"}]} />
     </Stage>
   );
 };
@@ -160,15 +150,16 @@ const R4: React.FC = () => {
   const items = ["제목", "자막", "댓글", "소리"];
   return (
     <Stage>
-        {items.map((t, i) => {
-        const p = sp(f, 30 + i * 14), ck = prog(f, 44 + i * 14, 56 + i * 14);
-        return center(520 + i * 190, (
-          <div style={{width: 800, height: 150, borderRadius: 36, background: C.panel, border: `3px solid ${ck > 0.5 ? "#2f8f5b" : C.line}`, display: "flex", alignItems: "center", gap: 36, padding: "0 50px", fontSize: 64, fontWeight: 900, opacity: Math.min(1, p * 2), transform: `translateX(${(1 - p) * 120}px)`}}>
+      <Head n="2" text="사람이 확인" />
+      {items.map((t, i) => {
+        const p = sp(f, 24 + i * 14), ck = prog(f, 38 + i * 14, 50 + i * 14);
+        return center(380 + i * 190, (
+          <div style={{width: 760, height: 150, borderRadius: 36, background: C.panel, border: `3px solid ${ck > 0.5 ? "#2f8f5b" : C.line}`, display: "flex", alignItems: "center", gap: 36, padding: "0 50px", fontSize: 64, fontWeight: 900, opacity: Math.min(1, p * 2), transform: `translateX(${(1 - p) * 120}px)`}}>
             <Check p={ck} size={86} /><span>{t}</span><span style={{marginLeft: "auto", fontSize: 38, color: C.mute, fontWeight: 600}}>{ck > 0.5 ? "확인 완료" : "확인 중"}</span>
           </div>
         ), {key: t});
       })}
-      <div style={abs({left: 0, right: 0, top: 1290, textAlign: "center", fontSize: 28, color: C.mute})}>※ 확인 항목을 설명하기 위한 그래픽입니다</div>
+      <div style={abs({left: 0, right: 0, top: 1150, textAlign: "center", fontSize: 26, color: C.mute})}>※ 확인 항목을 설명하기 위한 그래픽입니다</div>
     </Stage>
   );
 };
@@ -176,12 +167,12 @@ const R4: React.FC = () => {
 // ---- receive: the link arrives in the connected messenger (drawn, generic chat), then the real delivery page ----
 const DMScreen: React.FC = () => {
   const f = useCurrentFrame();
-  const b1 = sp(f, 14), b2 = sp(f, 30);
+  const b1 = sp(f, 18), b2 = sp(f, 36);
   return (
-    <div style={{width: 390, height: 844, transform: `scale(${SX})`, transformOrigin: "0 0", background: "#e8ecf0", fontFamily: "Pretendard, 'Noto Sans KR', sans-serif", color: C.ink, position: "relative"}}>
-      <div style={abs({left: 0, right: 0, top: 0, height: 96, background: "#fff", display: "flex", alignItems: "flex-end", padding: "0 22px 14px", fontSize: 24, fontWeight: 900, borderBottom: "1px solid #d5dae0"})}>온고잉 · ONGOING STUDIO</div>
-      <div style={abs({left: 18, top: 130, maxWidth: 270, padding: "14px 18px", borderRadius: "6px 20px 20px 20px", background: "#fff", fontSize: 21, fontWeight: 700, lineHeight: 1.4, opacity: Math.min(1, b1 * 2), transform: `translateY(${(1 - b1) * 24}px)`})}>완성본이 준비되었습니다. 아래 링크에서 확인해 주세요.</div>
-      <div style={abs({left: 18, top: 262, width: 300, padding: 14, borderRadius: "6px 20px 20px 20px", background: "#fff", opacity: Math.min(1, b2 * 2), transform: `translateY(${(1 - b2) * 24}px)`})}>
+    <div style={{width: 390, height: 844, background: "#e8ecf0", fontFamily: "Pretendard, 'Noto Sans KR', sans-serif", color: C.ink, position: "relative"}}>
+      <div style={abs({left: 0, right: 0, top: 176, height: 56, background: "#fff", display: "flex", alignItems: "center", padding: "0 22px", fontSize: 22, fontWeight: 900, borderBottom: "1px solid #d5dae0"})}>온고잉 · ONGOING STUDIO</div>
+      <div style={abs({left: 18, top: 250, maxWidth: 270, padding: "14px 18px", borderRadius: "6px 20px 20px 20px", background: "#fff", fontSize: 21, fontWeight: 700, lineHeight: 1.4, opacity: Math.min(1, b1 * 2), transform: `translateY(${(1 - b1) * 24}px)`})}>완성본이 준비되었습니다. 아래 링크에서 확인해 주세요.</div>
+      <div style={abs({left: 18, top: 360, width: 300, padding: 14, borderRadius: "6px 20px 20px 20px", background: "#fff", opacity: Math.min(1, b2 * 2), transform: `translateY(${(1 - b2) * 24}px)`})}>
         <div style={{height: 92, borderRadius: 12, background: `linear-gradient(135deg,${PINK},#2a0b16)`, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 40}}>▶</div>
         <div style={{marginTop: 12, fontSize: 20, fontWeight: 900}}>당신의 쇼츠가 완성됐어요</div>
         <div style={{marginTop: 4, fontSize: 16, color: "#6b7078"}}>완성본 링크</div>
@@ -189,18 +180,19 @@ const DMScreen: React.FC = () => {
     </div>
   );
 };
+const C5 = crop(390, 170);
 const R5: React.FC = () => {
   const f = useCurrentFrame();
-  const page = prog(f, 80, 92);
+  const page = prog(f, 134, 146);
   return (
     <Stage>
-      <PhoneFrame>
-        <div style={abs({inset: 0, opacity: 1 - page})}><DMScreen /></div>
+      <Head n="3" text="링크로 받기" />
+      <Frame uw={390} uh={844} uy0={170}>
+        <div style={abs({inset: 0, opacity: 1 - page})}><div style={abs({left: 0, top: 0, width: 390, height: 844, transform: `scale(${FW / 390})`, transformOrigin: "0 0"})}><DMScreen /></div></div>
         <div style={abs({inset: 0, opacity: page})}><Shot src="shot-delivery.png" /></div>
-      </PhoneFrame>
-      {f >= 92 && <Box x={px(48)} y={py(564)} w={px(342) - px(48)} h={py(600) - py(564)} at={118} />}
-      <Cursor stops={[{x: px(150, 390), y: py(300, 390), t: 72}, {x: px(193), y: py(582), t: 140}]} />
-      <Say items={[{t: 14, text: "연결한 메신저로 링크 도착"}, {t: 72, text: "링크 누르기"}, {t: 140, text: "드라이브에서 영상 보기"}]} />
+      </Frame>
+      {f >= 146 && <Box x={C5.px(48)} y={C5.py(564)} w={C5.px(342) - C5.px(48)} h={C5.py(600) - C5.py(564)} at={158} />}
+      <Cursor stops={[{x: C5.px(150), y: C5.py(420), t: 128}, {x: C5.px(193), y: C5.py(582), t: 168}]} />
     </Stage>
   );
 };
@@ -218,43 +210,54 @@ const R6: React.FC = () => {
   );
 };
 
-
-// ---- karaoke captions: each word fills left-to-right while it is spoken (timings: make_caption_timing.py) ----
-const HIDE: [number, number][] = [[0, 1.65], [4.4, 6.55], [36.7, 41.2]];   // scenes whose big on-screen text already is the caption
-type CW = {w: string; s: number; e: number};
-const CHUNKS: CW[][] = (() => {
-  const out: CW[][] = []; let cur: CW[] = [];
-  for (const w of CAPTIONS.flat()) {
-    const len = cur.reduce((n, x) => n + x.w.length + 1, 0);
-    if (cur.length && (/[,.?!]$/.test(cur[cur.length - 1].w) || len + w.w.length > 15)) { out.push(cur); cur = []; }
-    cur.push(w);
+// ---- meme layer: stickers, "press here" arrows and click bursts, timed to the narration (absolute seconds). All drawn here; nothing borrowed. ----
+type Ov = {t0: number; t1: number; kind: "sticker" | "point" | "burst"; x: number; y: number; text?: string; size?: number; rot?: number; dir?: "up" | "down" | "left" | "right"; color?: string};
+const OV: Ov[] = [
+  // send (narration 6.6-11.8)
+  {t0: 6.7, t1: 8.5, kind: "sticker", x: 540, y: 1330, text: "📱 폰 영상 그대로 OK!", rot: -3},
+  {t0: 7.0, t1: 8.4, kind: "point", x: 398, y: 790, dir: "up"},
+  {t0: 8.7, t1: 10.5, kind: "sticker", x: 540, y: 1330, text: "🔗 링크만 붙여넣기!", rot: 2},
+  {t0: 9.0, t1: 10.4, kind: "point", x: 737, y: 790, dir: "up"},
+  {t0: 10.8, t1: 12.6, kind: "sticker", x: 540, y: 1330, text: "누르면 끝!", rot: -2, color: "#ff6f91"},
+  {t0: 11.4, t1: 12.2, kind: "burst", x: 548, y: 926, text: "딸깍!"},
+  // hand over (13.0-19.0)
+  {t0: 14.3, t1: 16.2, kind: "sticker", x: 540, y: 1330, text: "맡기면 알아서 척척 ✨", rot: -3},
+  {t0: 14.7, t1: 16.0, kind: "point", x: 739, y: 590, dir: "up"},
+  {t0: 16.5, t1: 19.0, kind: "sticker", x: 540, y: 1330, text: "직접 정해도 OK ✋", rot: 3},
+  {t0: 17.2, t1: 18.6, kind: "point", x: 306, y: 590, dir: "up"},
+  // templates + title (19.7-24.2)
+  {t0: 20.9, t1: 22.6, kind: "sticker", x: 540, y: 1330, text: "👀 미리 보고 골라요", rot: -2},
+  {t0: 21.1, t1: 22.4, kind: "point", x: 687, y: 1010, dir: "up"},
+  {t0: 22.8, t1: 25.2, kind: "sticker", x: 540, y: 1330, text: "제목은 내 손으로 ✍️", rot: 2},
+  {t0: 23.5, t1: 24.8, kind: "point", x: 262, y: 850, dir: "up"},
+  // review (25.7-29.8)
+  {t0: 26.2, t1: 29.9, kind: "sticker", x: 540, y: 1210, text: "마지막은 사람이 한 번 더! 👀", size: 54, rot: -2},
+  // receive (30.8-35.1)
+  {t0: 31.1, t1: 34.0, kind: "sticker", x: 540, y: 1330, text: "💬 메신저로 링크 도착!", rot: -2},
+  {t0: 35.0, t1: 35.8, kind: "burst", x: 462, y: 817, text: "톡!"},
+  {t0: 34.4, t1: 36.6, kind: "sticker", x: 540, y: 1330, text: "눌러서 확인, 끝!", rot: 2, color: "#ff6f91"},
+];
+const Meme: React.FC<{o: Ov}> = ({o}) => {
+  const f = useCurrentFrame(), t = f / 30;
+  if (t < o.t0 || t > o.t1) return null;
+  const p = sp(f, Math.round(o.t0 * 30)), out = 1 - prog(f, Math.round((o.t1 - 0.2) * 30), Math.round(o.t1 * 30));
+  const wob = Math.sin((t - o.t0) * 9) * 1.4;
+  if (o.kind === "sticker") {
+    return <div style={abs({left: 90, width: 900, top: o.y - 60, display: "flex", justifyContent: "center", opacity: Math.min(1, p * 2) * out, transform: `scale(${0.5 + 0.5 * p}) rotate(${(o.rot ?? 0) + wob}deg)`})}>
+      <span style={{padding: "14px 40px", borderRadius: 26, background: o.color ?? "#ffe14d", color: "#161616", fontSize: o.size ?? 70, fontWeight: 900, border: "7px solid #161616", boxShadow: "10px 10px 0 #161616", fontFamily: "Pretendard, 'Noto Sans KR', sans-serif", whiteSpace: "nowrap"}}>{o.text}</span>
+    </div>;
   }
-  if (cur.length) out.push(cur);
-  return out;
-})();
-const Karaoke: React.FC = () => {
-  const f = useCurrentFrame();
-  const t = f / 30;
-  if (HIDE.some(([a, b]) => t >= a && t < b)) return null;
-  const i = CHUNKS.findIndex((c, k) => t >= c[0].s - 0.12 && t < Math.min(c[c.length - 1].e + 0.4, CHUNKS[k + 1] ? CHUNKS[k + 1][0].s - 0.12 : 1e9));
-  if (i < 0) return null;
-  const ch = CHUNKS[i];
-  const stroke: React.CSSProperties = {WebkitTextStroke: "9px #000", paintOrder: "stroke fill"};
-  return (
-    <div style={abs({left: 140, width: 800, top: 215, textAlign: "center", fontFamily: "Pretendard, 'Noto Sans KR', sans-serif", wordBreak: "keep-all"})}>
-      <div style={{display: "inline-block", padding: "14px 30px 18px", borderRadius: 30, background: "rgba(0,0,0,0.55)", fontSize: 64, fontWeight: 900, lineHeight: 1.3, opacity: Math.min(1, (t - (ch[0].s - 0.12)) * 14)}}>
-        {ch.map((w, k) => {
-          const p = Math.min(1, Math.max(0, (t - w.s) / Math.max(0.05, w.e - w.s)));
-          return (
-            <span key={k} style={{position: "relative", display: "inline-block", marginRight: 16}}>
-              <span style={{color: "rgba(255,255,255,0.5)", ...stroke}}>{w.w}</span>
-              <span style={{position: "absolute", left: 0, top: 0, whiteSpace: "nowrap", color: "#ffe14d", clipPath: `inset(0 ${(1 - p) * 100}% 0 0)`, ...stroke}}>{w.w}</span>
-            </span>
-          );
-        })}
-      </div>
-    </div>
-  );
+  if (o.kind === "point") {  // arrow whose tip sits on (x,y), bobbing toward the target
+    const bob = Math.sin((t - o.t0) * 12) * 14, rot = {up: 0, right: 90, down: 180, left: 270}[o.dir ?? "up"];
+    return <svg width={150} height={190} viewBox="0 0 150 190" style={{position: "absolute", left: o.x - 75, top: o.y - 8, opacity: Math.min(1, p * 2) * out, transformOrigin: "75px 8px", transform: `rotate(${rot}deg) translateY(${bob}px)`, filter: "drop-shadow(0 10px 12px rgba(0,0,0,0.5))"}}>
+      <path d="M75 8 L140 88 L100 88 L100 182 L50 182 L50 88 L10 88 Z" fill={PINK} stroke="#fff" strokeWidth={8} strokeLinejoin="round" />
+    </svg>;
+  }
+  const pts = Array.from({length: 16}, (_, i) => { const a = (i / 16) * Math.PI * 2, r = i % 2 ? 78 : 130; return `${150 + Math.cos(a) * r},${150 + Math.sin(a) * r}`; }).join(" ");
+  return <svg width={300} height={300} viewBox="0 0 300 300" style={{position: "absolute", left: o.x - 150, top: o.y - 150, opacity: out, transform: `scale(${0.4 + 0.8 * p}) rotate(${wob * 3}deg)`}}>
+    <polygon points={pts} fill="#ffe14d" stroke="#161616" strokeWidth={8} strokeLinejoin="round" />
+    <text x={150} y={176} textAnchor="middle" fontSize={66} fontWeight={900} fill="#161616" fontFamily="Pretendard, 'Noto Sans KR', sans-serif">{o.text}</text>
+  </svg>;
 };
 
 export const REAL_PLAN: [number, number, React.FC, boolean][] = [[0, 6.5, H, false], [6.5, 12.9, R1, true], [12.9, 19.6, R2, true], [19.6, 25.6, R3, true], [25.6, 30.7, R4, true], [30.7, 36.7, R5, true], [36.7, 41.2, R6, true]];
@@ -263,7 +266,7 @@ export const REAL_FRAMES = sec(41.2);
 export const AdReal: React.FC<{narration?: boolean}> = ({narration = false}) => (
   <AbsoluteFill style={{background: C.bg}}>
     {REAL_PLAN.map(([a, b, Comp, wipe], i) => <Sequence key={i} from={sec(a)} durationInFrames={sec(b - a)}><Cut wipe={wipe} punch={false}><Comp /></Cut></Sequence>)}
-    <Karaoke />
+    {OV.map((o, i) => <Meme key={i} o={o} />)}
     <Audio src={staticFile("audio_real.wav")} volume={narration ? 0.5 : 1} />
     {narration && <Audio src={staticFile("narration_real.wav")} />}
   </AbsoluteFill>
