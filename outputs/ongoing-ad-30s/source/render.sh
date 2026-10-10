@@ -9,5 +9,5 @@ python3 make_audio.py
 python3 make_audio_fast.py
 mkdir -p out
 CHROME=$(ls /opt/pw-browsers/chromium_headless_shell-*/chrome-linux/headless_shell 2>/dev/null | head -1 || true)  # cloud sandbox only; elsewhere Remotion downloads its own
-PROPS=""; [ "$COMP" = Ad30 ] && [ -f public/narration.wav ] && PROPS='--props={"narration":true}'  # make_narration.py (paid API) writes this file
+PROPS=""; { [ "$COMP" = Ad30 ] && [ -f public/narration.wav ] || [ "$COMP" = AdFast30 ] && [ -f public/narration_fast.wav ]; } && PROPS='--props={"narration":true}'  # make_narration.py (paid API) writes this file
 npx remotion render src/index.ts "$COMP" "$OUT" --public-dir=public $PROPS ${CHROME:+--browser-executable=$CHROME}
