@@ -1,4 +1,4 @@
-from vp import chunk, plan_keep, remap, segment
+from vp import chunk, plan_keep, remap, script_words, segment
 
 W = [{"w": w, "s": s, "e": e} for w, s, e in
      [("클로드가", 0.0, 0.5), ("방금", 0.55, 0.9), ("웹", 1.0, 1.2), ("디자이너들을", 1.25, 2.0), ("끝장냈어요", 3.0, 3.6)]]
@@ -20,4 +20,7 @@ runs = segment(W, ["hello everyone", "first the skills repo", "second playwright
 assert runs == [(0, 2), (2, 6), (6, 9), (9, 11)], runs
 assert segment(W[:2], ["a", "b", "c"]) == [(0, 0), (0, 1), (1, 2)]  # too few words: even split, no crash
 assert [x["text"] for x in chunk(edit, [], breaks={2})] == ["클로드가 방금", "웹 디자이너들을", "끝장냈어요"]  # forced break at a sentence start
+sw = script_words(W, runs, ["hello everyone", "first the skills repo", "second playwright mcp", "bye now"])
+assert [x["w"] for x in sw][2:6] == ["first", "the", "skills", "repo"]  # script spelling, not the mis-heard "skils"
+assert all(a["s"] <= b["s"] for a, b in zip(sw, sw[1:])) and sw[2]["s"] == 2.0 and sw[5]["e"] == 5.5, sw
 print("ok")

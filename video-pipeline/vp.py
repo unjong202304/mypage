@@ -3,6 +3,7 @@
 Usage: vp.py keys [status] | voices | brief JOB "topic" [repo..] | write JOB | voice JOB | make JOB | draft JOB (silent) | research JOB owner/repo.. | script JOB | intake JOB VIDEO | transcribe JOB | cuts JOB | captions JOB | scenes JOB | render JOB | run JOB VIDEO"""
 import glob, json, os, re, shutil, subprocess, sys, urllib.request
 from difflib import SequenceMatcher
+from itertools import accumulate
 from pathlib import Path
 
 import keys
@@ -107,6 +108,19 @@ def segment(words, sents):
     return out[::-1]
 
 
+def script_words(words, runs, sents):
+    """Caption words from the script (the truth), timed by where the transcript heard each sentence."""
+    out = []
+    for (i, j), say in zip(runs, sents):
+        t0, t1 = words[min(i, len(words) - 1)]["s"], words[max(j, i + 1) - 1]["e"]
+        ws = say.split()
+        tot, c = sum(len(w) for w in ws), 0
+        for w in ws:
+            out.append({"w": w, "s": round(t0 + (t1 - t0) * c / tot, 2), "e": round(t0 + (t1 - t0) * (c + len(w)) / tot, 2)})
+            c += len(w)
+    return out
+
+
 # ---- stages ----
 def research(job, *repos):
     """Per-repo facts for scene cards. Needs api.github.com (set GITHUB_TOKEN to lift rate limits); never invents numbers."""
@@ -180,11 +194,13 @@ def cuts(job):
 
 
 def captions(job):
-    m = load(job)
-    breaks, sj = (), Path(job) / "script.json"
-    if sj.exists():  # never let a caption straddle two script sentences
-        breaks = {i for i, _ in segment(m["words_edit"], [b["say"] for b in json.loads(sj.read_text())["beats"]])}
-    m["captions"] = chunk(m["words_edit"], decisions(job).get("emphasis", []), breaks=breaks)
+    m, words, breaks, sj = load(job), None, (), Path(job) / "script.json"
+    words = m["words_edit"]
+    if sj.exists():  # scripted speech: show the script's words, never the transcript's spelling; no caption spans two sentences
+        sents = [b["say"] for b in json.loads(sj.read_text())["beats"]]
+        words = script_words(words, segment(words, sents), sents)
+        breaks = set(accumulate(len(x.split()) for x in sents[:-1]))
+    m["captions"] = chunk(words, decisions(job).get("emphasis", []), breaks=breaks)
     save(job, m)
 
 
