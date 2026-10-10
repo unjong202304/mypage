@@ -3,3 +3,5 @@ video-pipeline/person_test/*.jpg
 video-pipeline/person_test/*.mp4
 outputs/ongoing-ad-30s/source/public/
 video-pipeline/models/
+video-pipeline/tools/ruflo/node_modules/
+video-pipeline/higgsfield_example/broll/
