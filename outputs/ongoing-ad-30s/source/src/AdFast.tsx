@@ -4,12 +4,12 @@ import {Check, LogoWhite, Phone, ScreenImg, ScreenVid, Stage} from "./parts";
 import {A, C, FONT, prog, sec} from "./theme";
 
 const CL = {extrapolateLeft: "clamp", extrapolateRight: "clamp"} as const;
-const abs = (s: React.CSSProperties): React.CSSProperties => ({position: "absolute", ...s});
-const PINK = "#db386c";
-const sp = (f: number, at: number) => spring({frame: f - at, fps: 30, config: {damping: 12, stiffness: 210, mass: 0.65}});
+export const abs = (s: React.CSSProperties): React.CSSProperties => ({position: "absolute", ...s});
+export const PINK = "#db386c";
+export const sp = (f: number, at: number) => spring({frame: f - at, fps: 30, config: {damping: 12, stiffness: 210, mass: 0.65}});
 
 // Words slam in one by one with a little overshoot. `hl` words are tinted.
-const Slam: React.FC<{text: string; at?: number; size?: number; hl?: string[]; top: number; stagger?: number; align?: "center" | "left"; color?: string}> =
+export const Slam: React.FC<{text: string; at?: number; size?: number; hl?: string[]; top: number; stagger?: number; align?: "center" | "left"; color?: string}> =
   ({text, at = 2, size = 84, hl = [], top, stagger = 3, align = "center", color = C.ivory}) => {
     const f = useCurrentFrame();
     return (
@@ -34,7 +34,7 @@ const Wipe: React.FC = () => {
 };
 
 // Hard cut with a small punch-in; optional wipe.
-const Cut: React.FC<{wipe?: boolean; children: React.ReactNode}> = ({wipe, children}) => {
+export const Cut: React.FC<{wipe?: boolean; children: React.ReactNode}> = ({wipe, children}) => {
   const f = useCurrentFrame();
   return (
     <AbsoluteFill>
