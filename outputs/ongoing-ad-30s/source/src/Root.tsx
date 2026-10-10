@@ -6,6 +6,7 @@ import {AdEasy} from "./AdEasy";
 import {AdReal, REAL_FRAMES} from "./AdReal";
 import {TemplateShow} from "./TemplateShow";
 import {AdGem, GEM_FRAMES} from "./AdGem";
+import {AdOpus, OPUS_FRAMES} from "./AdOpus";
 import {FPS} from "./theme";
 
 export const Root: React.FC = () => (
@@ -15,6 +16,7 @@ export const Root: React.FC = () => (
     <Composition id="AdReal" component={AdReal} width={1080} height={1920} fps={FPS} durationInFrames={REAL_FRAMES} defaultProps={{narration: false}} />
     <Composition id="TemplateShow" component={TemplateShow} width={1080} height={1920} fps={FPS} durationInFrames={FPS * 7} />
     <Composition id="AdGem" component={AdGem} width={1080} height={1920} fps={FPS} durationInFrames={GEM_FRAMES} defaultProps={{narration: false}} />
+    <Composition id="AdOpus" component={AdOpus} width={1080} height={1920} fps={FPS} durationInFrames={OPUS_FRAMES} defaultProps={{narration: true}} />
     <Composition id="Ad30" component={Ad} width={1080} height={1920} fps={FPS} durationInFrames={FPS * 30} defaultProps={{narration: false}} />
   </>
 );
