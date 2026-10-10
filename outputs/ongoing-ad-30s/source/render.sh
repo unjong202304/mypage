@@ -6,4 +6,5 @@ cd "$(dirname "$0")"
 python3 make_audio.py
 mkdir -p out
 CHROME=$(ls /opt/pw-browsers/chromium_headless_shell-*/chrome-linux/headless_shell 2>/dev/null | head -1 || true)  # cloud sandbox only; elsewhere Remotion downloads its own
-npx remotion render src/index.ts Ad30 out/ongoing-ad-30s.mp4 --public-dir=public ${CHROME:+--browser-executable=$CHROME}
+PROPS=""; [ -f public/narration.wav ] && PROPS='--props={"narration":true}'  # make_narration.py (paid API) writes this file
+npx remotion render src/index.ts Ad30 out/ongoing-ad-30s.mp4 --public-dir=public $PROPS ${CHROME:+--browser-executable=$CHROME}

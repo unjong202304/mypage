@@ -1,4 +1,6 @@
 node_modules/
 out/
 public/audio.wav
+public/narration.wav
+public/_narration/
 public/assets/

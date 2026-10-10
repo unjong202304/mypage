@@ -182,14 +182,15 @@ const Scene: React.FC<{dur: number; children: React.ReactNode}> = ({dur, childre
   return <AbsoluteFill style={{opacity: Math.min(interpolate(f, [0, 5], [0, 1], CL), interpolate(f, [dur - 4, dur], [1, 0], CL))}}>{children}</AbsoluteFill>;
 };
 
-export const Ad: React.FC = () => {
+export const Ad: React.FC<{narration?: boolean}> = ({narration = false}) => {
   const els = [<S1 />, <S2 />, <S3 />, <S4 />, <S5 />, <S6 />];
   return (
     <AbsoluteFill style={{background: C.bg, fontFamily: FONT}}>
       {SCENES.map(([a, b], i) => (
         <Sequence key={i} from={sec(a)} durationInFrames={sec(b - a)}><Scene dur={sec(b - a)}>{els[i]}</Scene></Sequence>
       ))}
-      <Audio src={staticFile("audio.wav")} />
+      <Audio src={staticFile("audio.wav")} volume={narration ? 0.45 : 1} />
+      {narration && <Audio src={staticFile("narration.wav")} />}
     </AbsoluteFill>
   );
 };
