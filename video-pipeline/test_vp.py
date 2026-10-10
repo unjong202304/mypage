@@ -1,4 +1,4 @@
-from vp import align, chunk, plan_keep, remap
+from vp import chunk, plan_keep, remap, segment
 
 W = [{"w": w, "s": s, "e": e} for w, s, e in
      [("클로드가", 0.0, 0.5), ("방금", 0.55, 0.9), ("웹", 1.0, 1.2), ("디자이너들을", 1.25, 2.0), ("끝장냈어요", 3.0, 3.6)]]
@@ -13,9 +13,10 @@ c = chunk(edit, ["끝장"])
 assert [x["text"] for x in c] == ["클로드가 방금 웹", "디자이너들을 끝장냈어요"], c
 assert c[1]["hl"] == [1], c  # emphasis lands on the right word
 
-words = [{"w": w, "s": s, "e": s + 0.3} for w, s in [("안녕", 0.0), ("첫번째", 2.0), ("스킬", 3.0), ("두번째", 6.0)]]
-sp = align(words, ["a", "bbbb", "cccc", "d"], [1, 2], ["첫번째", "두번째"], 10)
-assert sp == [[1.8, 5.7], [5.8, 10]], sp  # anchors found; last scene runs to the end (tail=5 capped by duration)
-sp = align(words, ["aaaa", "bbbb", "cccc", "dddd"], [1, 2], ["nomatch", "nomatch"], 8)
-assert sp == [[2.0, 3.9], [4.0, 8]], sp  # fallback: by sentence length
+# segment: a mis-heard word must not shift the sentence boundaries
+heard = ["hello", "everyone", "first", "the", "skils", "repo", "second", "playwrite", "mcp", "bye", "now"]
+W = [{"w": w, "s": float(i), "e": i + 0.5} for i, w in enumerate(heard)]
+runs = segment(W, ["hello everyone", "first the skills repo", "second playwright mcp", "bye now"])
+assert runs == [(0, 2), (2, 6), (6, 9), (9, 11)], runs
+assert segment(W[:2], ["a", "b", "c"]) == [(0, 0), (0, 1), (1, 2)]  # too few words: even split, no crash
 print("ok")

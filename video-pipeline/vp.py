@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Reel pipeline. Each stage reads/writes <job>/manifest.json (contract: README.md).
 Usage: vp.py research JOB owner/repo.. | script JOB | intake JOB VIDEO | transcribe JOB | cuts JOB | captions JOB | scenes JOB | render JOB | run JOB VIDEO"""
-import glob, json, os, shutil, subprocess, sys, urllib.request
+import glob, json, os, re, shutil, subprocess, sys, urllib.request
 from difflib import SequenceMatcher
 from pathlib import Path
 
@@ -73,22 +73,36 @@ def chunk(words, emph, max_words=3, max_chars=14):
     return chunks
 
 
-def align(words, sentences, item_idx, anchors, duration, tail=5.0):
-    """Scene spans for script items. Prefer spoken anchor words; else place by sentence length."""
-    starts, i = [], 0
-    for a in anchors:
-        j = next((k for k in range(i, len(words)) if a and SequenceMatcher(None, a.lower(), words[k]["w"].lower()).ratio() >= 0.6), None)
-        if j is None:
-            starts = None
-            break
-        starts.append(words[j]["s"] - 0.2)
-        i = j + 1
-    if starts is None:  # shortcut: assumes an even speech rate, upgrade to forced alignment when drift shows
-        total = sum(map(len, sentences))
-        starts = [sum(map(len, sentences[:k])) / total * duration for k in item_idx]
-    starts = [max(0, x) for x in starts]
-    ends = [b - 0.1 for b in starts[1:]] + [min(duration, starts[-1] + tail)]
-    return [[round(a, 2), round(b, 2)] for a, b in zip(starts, ends)]
+def segment(words, sents):
+    """Split the transcript into len(sents) consecutive runs that best match each script sentence (survives mis-heard words).
+    Returns [(first_word_idx, end_idx)]."""
+    norm = lambda t: re.sub(r"[\W_]+", "", t.lower())
+    n, w = len(sents), len(words)
+    tn = [norm(x) for x in sents]
+    total = sum(map(len, tn)) or 1
+    if w < n:  # shortcut: too few words to align, split evenly
+        return [(k * w // n, (k + 1) * w // n) for k in range(n)]
+    span = [max(3, int(w * len(t) / total * 2.5) + 2) for t in tn]
+    neg = float("-inf")
+    best = [[neg] * (w + 1) for _ in range(n + 1)]
+    back = [[0] * (w + 1) for _ in range(n + 1)]
+    best[0][0] = 0.0
+    for k in range(n):
+        for i in range(k, w):
+            if best[k][i] == neg:
+                continue
+            for j in range(i + 1, min(w, i + span[k]) + 1):
+                sc = best[k][i] + SequenceMatcher(None, tn[k], norm("".join(x["w"] for x in words[i:j]))).ratio() * len(tn[k])
+                if sc > best[k + 1][j]:
+                    best[k + 1][j], back[k + 1][j] = sc, i
+    if best[n][w] == neg:  # span limits made it infeasible
+        return [(k * w // n, (k + 1) * w // n) for k in range(n)]
+    out, j = [], w
+    for k in range(n, 0, -1):
+        i = back[k][j]
+        out.append((i, j))
+        j = i
+    return out[::-1]
 
 
 # ---- stages ----
@@ -109,19 +123,16 @@ def research(job, *repos):
     p.write_text(json.dumps(list(have.values()), ensure_ascii=False, indent=1))
 
 
-def sentences(sc):
-    return [sc["hook"]] + [i["say"] for i in sc["items"]] + [sc["result"], sc["cta"]]
-
-
 def script(job):
-    """Validate the LLM-written script.json, emit script.txt (to the shooter / TTS) and vocab+emphasis hints."""
+    """Validate the LLM-written script.json (a storyboard of beats), emit script.txt (to the shooter / TTS) and name hints."""
     job = Path(job)
     sc = json.loads((job / "script.json").read_text())
-    assert sc["items"] and all(i.get("repo") and i.get("say") for i in sc["items"]), "items need repo+say"
-    assert sc.get("hook") and sc.get("result") and sc.get("cta"), "need hook, result, cta"
-    (job / "script.txt").write_text("\n".join(sentences(sc)) + "\n")
+    beats = sc["beats"]
+    assert beats and all(b.get("say") for b in beats), "every beat needs `say`"
+    (job / "script.txt").write_text("\n".join(b["say"] for b in beats) + "\n")
     d = decisions(job)
-    d["vocab"] = [i["repo"].split("/")[-1] for i in sc["items"]] + [a for i in sc["items"] if (a := i.get("anchor"))] + sc.get("vocab", [])
+    repos = [v["repo"].split("/")[-1] for b in beats for v in b.get("visuals", []) if "repo" in v]
+    d["vocab"] = repos + sc.get("vocab", [])
     d["emphasis"] = sc.get("emphasis", [])
     (job / "decisions.json").write_text(json.dumps(d, ensure_ascii=False, indent=1))
 
@@ -173,26 +184,38 @@ def captions(job):
 
 
 def scenes(job):
-    """Time scene cards to the spoken items. No script.json -> no-op (decisions.json scenes still work)."""
+    """Time every beat's visuals to the sentence being spoken. No script.json -> no-op (decisions.json scenes still work)."""
     job = Path(job)
     if not (job / "script.json").exists():
         return
     m, sc = load(job), json.loads((job / "script.json").read_text())
+    beats = sc["beats"]
     facts = {r["repo"]: r for r in json.loads((job / "research.json").read_text())} if (job / "research.json").exists() else {}
-    sens, items = sentences(sc), sc["items"]
-    spans = align(m["words_edit"], sens, range(1, 1 + len(items)), [i.get("anchor", "") for i in items], m["duration_edit"])
+    words = m["words_edit"]
+    runs = segment(words, [b["say"] for b in beats])
+    starts = [words[i]["s"] for i, _ in runs]
+    starts[0] = 0.0
+    ends = starts[1:] + [m["duration_edit"]]
     ordinals = {"ko": ["첫 번째", "두 번째", "세 번째"], "en": ["First", "Second", "Third"]}.get(sc.get("lang", "ko"), [])
-    labels = [i.get("title") or i["repo"].split("/")[-1] for i in items]
+    steps = sc.get("steps", [])
     m["scenes"] = []
-    for k, (i, (s, e)) in enumerate(zip(items, spans)):
-        f = facts.get(i["repo"], {})
-        stars = f.get("stars")
-        txt = None if stars is None else (f"{stars / 1000:.1f}k" if stars >= 1000 else str(stars))
-        m["scenes"].append({
-            "s": s, "e": e, "title": labels[k], "sub": i.get("label") or f.get("desc") or "", "url": f"github.com/{i['repo']}",
-            **({"badge": f"★ {txt}", "stats": [{"k": "stars", "v": txt}]} if txt else {}),
-            "step": {"ordinal": ordinals[k] if k < len(ordinals) else str(k + 1), "labels": labels, "active": k},
-            **i.get("scene", {})})  # per-item override: kind, stats, cmd, chip, lines
+    for b, s0, e0 in zip(beats, starts, ends):
+        vs = b.get("visuals", [])
+        for q, v in enumerate(vs):
+            d = {"layout": "top", **v}
+            if "repo" in d:
+                f = facts.get(d["repo"], {})
+                d.setdefault("title", d["repo"].split("/")[-1])
+                d.setdefault("url", f"github.com/{d['repo']}")
+                d.setdefault("sub", f.get("desc") or "")
+                stars = f.get("stars")
+                if stars is not None and "stats" not in d:
+                    txt = f"{stars / 1000:.1f}k" if stars >= 1000 else str(stars)
+                    d["stats"], d["badge"] = [{"k": "stars", "v": txt}], f"★ {txt}"
+            if isinstance(d.get("step"), int):
+                k = d["step"]
+                d["step"] = {"ordinal": ordinals[k] if k < len(ordinals) else str(k + 1), "labels": steps, "active": k}
+            m["scenes"].append({"s": round(s0 + (e0 - s0) * q / len(vs), 2), "e": round(s0 + (e0 - s0) * (q + 1) / len(vs), 2), **d})
     save(job, m)
 
 

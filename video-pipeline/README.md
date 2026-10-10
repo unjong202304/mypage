@@ -10,15 +10,25 @@ Footage in -> cut, caption, motion-graphic split layout -> `final.mp4`. Every st
 ```
 
 ## Concept: AI-tools roundup short (the format we copy; the topic is swappable)
-hook -> N numbered items (one scene card each) -> result -> comment-CTA. `script.json` carries that shape, so a new
-topic = a new `script.json` + `research.json`, no code change.
+hook -> N numbered items -> result -> comment-CTA. `script.json` is a storyboard, so a new topic = a new
+`script.json` + `research.json`, no code change:
+
+```
+{"lang":"ko", "steps":["skills",..], "vocab":[..], "emphasis":[..],
+ "beats":[{"say":"one spoken sentence",
+           "visuals":[{"layout":"top|bottom|full", "kind":"...", ...props, "step":0}]}]}   # no visuals = face only
+```
+Each beat is matched to the transcript (tolerates mis-heard words); its visuals share the sentence's time equally, hard cuts.
+Kinds: `title{text,hl[],sub}` `stat{value,label}` `list{title,items[]}` `repo{repo,sub,cmd,stats[]}` `terminal{title,chip,cmd,lines[]}`
+`compare{left{label,title},right{..}}` `diagram{nodes[{label,sub}],status}` `doc{title,file,steps}` `logos{chips[],label}` `media{src}` (file in the job dir).
+`layout`: `top` graphic over face, `bottom` face over graphic, `full` graphic only (audio continues).
 
 ```
 vp.py research JOB owner/repo ..   # facts for cards (needs api.github.com; else fill research.json by hand)
-(LLM writes JOB/script.json)       # {lang, hook, items[{repo,anchor,say,label}], result, cta, vocab[], emphasis[]}
+(LLM writes JOB/script.json)       # storyboard, see below
 vp.py script JOB                   # validates it; writes script.txt (send to shooter / TTS) + vocab/emphasis hints
 (footage arrives: Line A or B)
-vp.py run JOB footage.mp4          # ... -> scenes (cards timed to the spoken item) -> render
+vp.py run JOB footage.mp4          # ... -> scenes (visuals timed to the spoken sentence) -> render
 ./smoke.sh                         # whole chain with an espeak voice (English); mechanics only
 ```
 
@@ -39,7 +49,7 @@ vp.py run JOB footage.mp4          # ... -> scenes (cards timed to the spoken it
 - Cloud sandbox blocks api.github.com for repos outside the session, so card stars are blank there (never invented). Works locally.
 - Korean alignment is unverified: espeak Korean is not intelligible to Whisper, so only the English smoke test has run.
   Test Korean with real speech. Whisper may mis-hear names; list them in `vocab`.
-- Scene timing uses the spoken `anchor` word; if any anchor is not heard it falls back to sentence-length proportions.
+- Beat timing is a best-match segmentation of the transcript; very short or repeated sentences can land a word early/late.
 
 ## Not built yet
 Best-take scoring (MediaPipe vs script), Silero VAD, SFX/BGM, GitHub-card scenes (GitHub API), screenshots (Playwright).

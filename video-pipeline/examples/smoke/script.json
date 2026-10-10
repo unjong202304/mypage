@@ -1,53 +1,22 @@
 {
   "lang": "en",
-  "hook": "Add these three things to Claude and your whole workflow changes",
-  "items": [
-    {
-      "repo": "anthropics/skills",
-      "anchor": "first",
-      "say": "First, the official skills collection from Anthropic",
-      "label": "Official Anthropic skill examples",
-      "scene": {
-        "kind": "repo",
-        "cmd": "npx skills add anthropics/skills"
-      }
-    },
-    {
-      "repo": "microsoft/playwright-mcp",
-      "anchor": "second",
-      "say": "Second, Playwright MCP, which lets the model drive a browser",
-      "label": "LLM-driven browser automation",
-      "scene": {
-        "kind": "terminal",
-        "title": "claude ~/site",
-        "chip": "/mcp",
-        "cmd": "/mcp",
-        "lines": [
-          "playwright connected"
-        ]
-      }
-    },
-    {
-      "repo": "github/github-mcp-server",
-      "anchor": "third",
-      "say": "Third, the GitHub MCP server, for repositories and issues",
-      "label": "AI that works with repos and issues",
-      "scene": {
-        "kind": "repo",
-        "cmd": "claude mcp add github"
-      }
-    }
-  ],
-  "result": "With these three, Claude can build and test things on its own",
-  "cta": "Comment install and I will send you the setup guide",
-  "vocab": [
-    "Claude",
-    "MCP",
-    "Playwright"
-  ],
-  "emphasis": [
-    "whole",
-    "own",
-    "install"
+  "steps": ["skills", "playwright-mcp", "github-mcp-server"],
+  "vocab": ["Claude", "MCP", "Playwright"],
+  "emphasis": ["whole", "own", "install"],
+  "beats": [
+    {"say": "Add these three things to Claude and your whole workflow changes",
+     "visuals": [{"layout": "full", "kind": "title", "text": "Claude + 3 add-ons", "hl": ["3"]}]},
+    {"say": "First, the official skills collection from Anthropic",
+     "visuals": [{"layout": "top", "kind": "repo", "repo": "anthropics/skills", "sub": "Official skill examples", "cmd": "npx skills add anthropics/skills", "step": 0}]},
+    {"say": "Second, Playwright MCP, which lets the model drive a browser",
+     "visuals": [{"layout": "top", "kind": "terminal", "title": "claude ~/site", "chip": "/mcp", "cmd": "/mcp", "lines": ["playwright connected"], "step": 1},
+                 {"layout": "full", "kind": "diagram", "nodes": [{"label": "Claude"}, {"label": "MCP"}, {"label": "Browser"}], "status": "connected"}]},
+    {"say": "Third, the GitHub MCP server, for repositories and issues",
+     "visuals": [{"layout": "bottom", "kind": "repo", "repo": "github/github-mcp-server", "sub": "AI that works with repos and issues", "cmd": "claude mcp add github", "step": 2}]},
+    {"say": "With these three, Claude can build and test things on its own",
+     "visuals": [{"layout": "top", "kind": "compare", "left": {"label": "Before", "title": "Manual work"}, "right": {"label": "After", "title": "Done for you"}},
+                 {"layout": "full", "kind": "list", "title": "On its own", "items": ["Design", "Build", "Test"]}]},
+    {"say": "Comment install and I will send you the setup guide",
+     "visuals": [{"layout": "full", "kind": "doc", "title": "Setup guide", "file": "docs/setup-guide.md", "steps": 5}]}
   ]
 }
