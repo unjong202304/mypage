@@ -13,7 +13,7 @@ const CL = {extrapolateLeft: "clamp", extrapolateRight: "clamp"} as const;
 const FL = 380, FT = 330, FW = 520;
 const crop = (uw: number) => ({px: (ux: number) => FL + (ux * FW) / uw, py: (uy: number) => FT + (uy * FW) / uw});
 
-const Tap: React.FC<{x: number; y: number; at: number}> = ({x, y, at}) => {
+export const Tap: React.FC<{x: number; y: number; at: number}> = ({x, y, at}) => {
   const p = interpolate(useCurrentFrame(), [at, at + 16], [0, 1], CL);
   if (p <= 0 || p >= 1) return null;
   return <div style={abs({left: x - 60, top: y - 60, width: 120, height: 120, borderRadius: 60, border: `7px solid rgba(219,56,108,${1 - p})`, background: `rgba(219,56,108,${0.25 * (1 - p)})`, transform: `scale(${0.4 + 1.1 * p})`})} />;
@@ -25,7 +25,7 @@ const Box: React.FC<{x: number; y: number; w: number; h: number; at: number}> = 
 type Stop = {x: number; y: number; t: number};
 const ptLerp = (a: number, b: number, p: number) => a + (b - a) * p;
 // Mouse pointer that glides to each stop, presses (shrinks + ring) at frame t, then moves on.
-const Cursor: React.FC<{stops: Stop[]}> = ({stops}) => {
+export const Cursor: React.FC<{stops: Stop[]}> = ({stops}) => {
   const f = useCurrentFrame();
   const first = stops[0];
   let x = first.x + 260, y = first.y + 300;
