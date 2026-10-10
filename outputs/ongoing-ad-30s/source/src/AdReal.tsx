@@ -27,7 +27,7 @@ const Box: React.FC<{x: number; y: number; w: number; h: number; at: number}> = 
 const Zoom: React.FC<{ox: number; oy: number; a: number; b: number; c: number; amount?: number; enabled?: boolean; children: React.ReactNode}> = ({ox, oy, a, b, c, amount = 0.2, enabled = false, children}) => {
   const f = useCurrentFrame();
   const z = enabled ? 1 + amount * (prog(f, a, b) - prog(f, b + 6, c)) : 1;
-  return <div style={abs({inset: 0, transformOrigin: `${ox}px ${oy}px`, transform: `scale(${z})`})}>{children}</div>;
+  return <div style={abs({inset: 0, clipPath: enabled ? "inset(0 0 450px 0)" : undefined})}><div style={abs({inset: 0, transformOrigin: `${ox}px ${oy}px`, transform: `scale(${z})`})}>{children}</div></div>;   // the title zoom is cropped at y=1470 so it never reaches the platform UI
 };
 
 type Stop = {x: number; y: number; t: number};
@@ -144,7 +144,7 @@ const R3: React.FC = () => {
   const sw = prog(f, 100, 114);
   return (
     <Stage>
-        <Zoom ox={px(178, 375)} oy={py(406, 375)} a={140} b={158} c={178} amount={0.3} enabled>
+        <Zoom ox={px(178, 375)} oy={py(406, 375)} a={140} b={158} c={178} amount={0.18} enabled>
         <PhoneFrame><Shot src="shot-templates.png" o={1 - sw} /><Shot src="shot-title.png" o={sw} /></PhoneFrame>
         {f < 100 && <Box x={px(181, 375)} y={py(347, 375)} w={242} h={248} at={44} />}
         <Cursor stops={[{x: px(255, 375), y: py(424, 375), t: 44}, {x: px(45, 375), y: py(346, 375), t: 132}]} />
