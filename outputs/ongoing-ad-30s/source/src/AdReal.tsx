@@ -8,7 +8,7 @@ import {Check, LogoWhite, Phone, ring, ScreenImg, ScreenVid, Stage} from "./part
 import {A, C, prog, sec} from "./theme";
 
 const CL = {extrapolateLeft: "clamp", extrapolateRight: "clamp"} as const;
-const PW = 600, PL = 240, PT = 350;               // phone width / left / top on the 1080x1920 canvas
+const PW = 500, PL = 290, PT = 390;               // phone width / left / top on the 1080x1920 canvas
 const SX = (PW - 2 * 0.022 * PW) / 390;           // screen px per UI px
 const px = (ux: number, w = 390) => PL + 0.022 * PW + ux * (PW - 0.044 * PW) / w;
 const py = (uy: number, w = 390) => PT + 0.022 * PW + uy * (PW - 0.044 * PW) / w;
@@ -63,9 +63,9 @@ const Say: React.FC<{items: {t: number; text: string}[]}> = ({items}) => {
   items.forEach((it, i) => { if (f >= it.t) k = i; });
   if (k < 0) return null;
   const p = sp(f, items[k].t);
-  return center(1725, (
-    <div style={{display: "flex", alignItems: "center", gap: 20, padding: "14px 36px 14px 18px", borderRadius: 999, background: C.red, fontSize: 42, fontWeight: 900, boxShadow: `0 8px 0 ${C.redDeep}`, transform: `scale(${0.8 + 0.2 * p})`, opacity: Math.min(1, p * 2)}}>
-      <span style={{width: 60, height: 60, borderRadius: 30, background: C.ivory, color: C.redDeep, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 40}}>{k + 1}</span>{items[k].text}
+  return center(292, (
+    <div style={{display: "flex", alignItems: "center", gap: 20, padding: "9px 30px 9px 14px", borderRadius: 999, background: C.red, fontSize: 36, fontWeight: 900, boxShadow: `0 8px 0 ${C.redDeep}`, transform: `scale(${0.8 + 0.2 * p})`, opacity: Math.min(1, p * 2)}}>
+      <span style={{width: 52, height: 52, borderRadius: 26, background: C.ivory, color: C.redDeep, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 34}}>{k + 1}</span>{items[k].text}
     </div>
   ));
 };
@@ -84,7 +84,7 @@ const Shot: React.FC<{src: string; o?: number}> = ({src, o = 1}) => <Img src={A(
 const Sub: React.FC<{text: string; top: number; at?: number}> = ({text, top, at = 22}) => (
   <div style={abs({left: 0, right: 0, top, textAlign: "center", fontSize: 46, fontWeight: 600, color: C.mute, opacity: prog(useCurrentFrame(), at, at + 12)})}>{text}</div>
 );
-const Step: React.FC<{n: string}> = ({n}) => <div style={abs({left: 0, right: 0, top: 70, textAlign: "center", fontSize: 40, fontWeight: 900, color: PINK, letterSpacing: "0.1em", opacity: prog(useCurrentFrame(), 0, 10)})}>{n}</div>;
+const Step: React.FC<{n: string}> = ({n}) => <div style={abs({left: 0, right: 0, top: 105, textAlign: "center", fontSize: 36, fontWeight: 900, color: PINK, letterSpacing: "0.1em", opacity: prog(useCurrentFrame(), 0, 10)})}>{n}</div>;
 
 
 // ---- hook (reference structure): claim card -> result shown in fast cuts -> "방법은 이겁니다" ----
@@ -116,10 +116,10 @@ const H: React.FC = () => {
       )}
       {k >= 0 && (
         <>
-          <div style={abs({left: 190, top: 130, })}>
-            <Phone w={700}>{HOOK_CUTS[k].node()}</Phone>
+          <div style={abs({left: 300, top: 230})}>
+            <Phone w={480}>{HOOK_CUTS[k].node()}</Phone>
           </div>
-          <Cap key={k} lines={HOOK_CUTS[k].cap} at={48 + k * 28 + 1} top={k === 2 ? 1380 : 1450} size={118} />
+          <Cap key={k} lines={HOOK_CUTS[k].cap} at={48 + k * 28 + 1} top={k === 2 ? 1180 : 1230} size={100} />
         </>
       )}
       {f >= 132 && (
@@ -137,8 +137,7 @@ const H: React.FC = () => {
 const R1: React.FC = () => (
   <Stage>
     <Step n="STEP 01" />
-    <Slam text="간단하게 보내고" at={2} top={120} size={96} hl={["간단하게"]} />
-    <Sub text="폰 촬영본도, 롱폼 링크만으로도" top={250} />
+    <Slam text="간단하게 보내고" at={2} top={160} size={90} hl={["간단하게"]} />
     <Zoom ox={540} oy={800} a={78} b={104} c={176} amount={0.15}>
       <PhoneFrame><Vid src="rec-file-link.mp4" from={75} rate={0.85} /></PhoneFrame>
       <Cursor stops={[{x: px(117), y: py(269), t: 30}, {x: px(291), y: py(269), t: 98}, {x: px(194), y: py(366), t: 150}]} />
@@ -151,8 +150,8 @@ const R1: React.FC = () => (
 const R2: React.FC = () => (
   <Stage>
     <Step n="STEP 02" />
-    <Slam text="맡겨도 좋고," at={2} top={120} size={96} hl={["맡겨도"]} />
-    <Slam text="직접 정해도 좋고." at={118} top={250} size={80} hl={["직접"]} />
+    <Sequence durationInFrames={118}><Slam text="맡겨도 좋고," at={2} top={160} size={90} hl={["맡겨도"]} /></Sequence>
+    <Sequence from={118}><Slam text="직접 정해도 좋고." at={2} top={160} size={90} hl={["직접"]} /></Sequence>
     <Zoom ox={540} oy={640} a={14} b={36} c={110} amount={0.15}>
       <PhoneFrame><Vid src="rec-auto-manual.mp4" from={30} rate={0.8} /></PhoneFrame>
       <Cursor stops={[{x: px(292), y: py(163), t: 62}, {x: px(70), y: py(163), t: 138}]} />
@@ -168,8 +167,8 @@ const R3: React.FC = () => {
   return (
     <Stage>
       <Step n="STEP 02" />
-      <div style={abs({inset: 0, opacity: 1 - sw})}><Slam text="템플릿은 미리 보고" at={2} top={120} size={86} hl={["미리"]} /></div>
-      <div style={abs({inset: 0, opacity: sw})}><Slam text="제목도 직접" at={102} top={120} size={96} hl={["직접"]} /></div>
+      <div style={abs({inset: 0, opacity: 1 - sw})}><Slam text="템플릿은 미리 보고" at={2} top={160} size={84} hl={["미리"]} /></div>
+      <div style={abs({inset: 0, opacity: sw})}><Slam text="제목도 직접" at={102} top={160} size={90} hl={["직접"]} /></div>
       <Zoom ox={px(178, 375)} oy={py(406, 375)} a={140} b={158} c={178} amount={0.3} enabled>
         <PhoneFrame><Shot src="shot-templates.png" o={1 - sw} /><Shot src="shot-title.png" o={sw} /></PhoneFrame>
         {f < 100 && <Box x={px(181, 375)} y={py(347, 375)} w={242} h={248} at={44} />}
@@ -187,17 +186,17 @@ const R4: React.FC = () => {
   return (
     <Stage>
       <Step n="STEP 02" />
-      <Slam text="AI로 돕고," at={2} top={120} size={96} hl={["AI로"]} />
-      <Slam text="사람이 확인합니다." at={16} top={250} size={96} hl={["확인합니다."]} />
+      <Slam text="AI로 돕고," at={2} top={155} size={84} hl={["AI로"]} />
+      <Slam text="사람이 확인합니다." at={16} top={265} size={84} hl={["확인합니다."]} />
       {items.map((t, i) => {
         const p = sp(f, 30 + i * 14), ck = prog(f, 44 + i * 14, 56 + i * 14);
-        return center(540 + i * 215, (
-          <div style={{width: 880, height: 170, borderRadius: 36, background: C.panel, border: `3px solid ${ck > 0.5 ? "#2f8f5b" : C.line}`, display: "flex", alignItems: "center", gap: 36, padding: "0 50px", fontSize: 64, fontWeight: 900, opacity: Math.min(1, p * 2), transform: `translateX(${(1 - p) * 120}px)`}}>
+        return center(470 + i * 200, (
+          <div style={{width: 880, height: 160, borderRadius: 36, background: C.panel, border: `3px solid ${ck > 0.5 ? "#2f8f5b" : C.line}`, display: "flex", alignItems: "center", gap: 36, padding: "0 50px", fontSize: 64, fontWeight: 900, opacity: Math.min(1, p * 2), transform: `translateX(${(1 - p) * 120}px)`}}>
             <Check p={ck} size={86} /><span>{t}</span><span style={{marginLeft: "auto", fontSize: 38, color: C.mute, fontWeight: 600}}>{ck > 0.5 ? "확인 완료" : "확인 중"}</span>
           </div>
         ), {key: t});
       })}
-      <div style={abs({left: 0, right: 0, top: 1800, textAlign: "center", fontSize: 28, color: C.mute})}>※ 확인 항목을 설명하기 위한 그래픽입니다</div>
+      <div style={abs({left: 0, right: 0, top: 1260, textAlign: "center", fontSize: 28, color: C.mute})}>※ 확인 항목을 설명하기 위한 그래픽입니다</div>
     </Stage>
   );
 };
@@ -206,8 +205,7 @@ const R4: React.FC = () => {
 const R5: React.FC = () => (
   <Stage>
     <Step n="STEP 03" />
-    <Slam text="링크 하나로" at={2} top={120} size={100} hl={["링크"]} />
-    <Slam text="편하게 확인하세요." at={14} top={250} size={86} hl={["편하게"]} />
+    <Slam text="링크 하나로 편하게 확인" at={2} top={160} size={80} hl={["링크", "편하게"]} />
     <Zoom ox={540} oy={PT + 200} a={84} b={110} c={170} amount={0.08}>
       <PhoneFrame><Shot src="shot-delivery.png" /></PhoneFrame>
       <Box x={px(48)} y={py(564)} w={px(342) - px(48)} h={py(600) - py(564)} at={92} />
