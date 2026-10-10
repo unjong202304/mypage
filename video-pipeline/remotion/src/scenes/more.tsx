@@ -27,7 +27,7 @@ export const Title: React.FC<{text: string; hl?: string[]; sub?: string; big: bo
 
 export const Stat: React.FC<{value: string; label: string; big: boolean}> = ({value, label, big}) => (
   <Center gap={8}>
-    <div style={{fontSize: big ? 210 : 160, fontWeight: 900, color: ACCENT[0], lineHeight: 1, ...useIn(0)}}>{value}</div>
+    <div style={{fontSize: (big ? 210 : 160) * (value.length > 5 ? 0.75 : 1), fontWeight: 900, color: ACCENT[0], lineHeight: 1, ...useIn(0)}}>{value}</div>
     <div style={{fontSize: 40, opacity: 0.8, ...useIn(6)}}>{label}</div>
   </Center>
 );
@@ -44,8 +44,8 @@ export const Checklist: React.FC<{title?: string; items: string[]; big: boolean}
   </Center>
 );
 
-const Skeleton: React.FC<{title: string; good: boolean}> = ({title, good}) => (
-  <div style={{height: 330, borderRadius: 14, overflow: "hidden", background: good ? "#f4f1ec" : "#e6e6e6", padding: 14, textAlign: "left", color: "#222"}}>
+const Skeleton: React.FC<{title: string; good: boolean; h: number}> = ({title, good, h}) => (
+  <div style={{height: h, borderRadius: 14, overflow: "hidden", background: good ? "#f4f1ec" : "#e6e6e6", padding: 14, textAlign: "left", color: "#222"}}>
     <div style={{display: "flex", gap: 6, marginBottom: 12}}>{[0, 1, 2].map((i) => <i key={i} style={{width: 9, height: 9, borderRadius: 5, background: "#bbb"}} />)}</div>
     <div style={{height: 120, borderRadius: 10, background: good ? "linear-gradient(135deg,#7c5cff,#ff7ab6)" : "#cfcfcf", padding: 12,
       color: "#fff", fontWeight: 800, fontSize: 26, lineHeight: 1.2}}>{title}</div>
@@ -55,14 +55,14 @@ const Skeleton: React.FC<{title: string; good: boolean}> = ({title, good}) => (
 );
 
 // Before/after: two website mock-ups side by side with a label chip each.
-export const Compare: React.FC<{left: {label: string; title: string}; right: {label: string; title: string}}> = ({left, right}) => (
+export const Compare: React.FC<{left: {label: string; title: string}; right: {label: string; title: string}; big?: boolean}> = ({left, right, big}) => (
   <Center>
-    <div style={{display: "flex", gap: 22, width: 650}}>
+    <div style={{display: "flex", flexDirection: big ? "column" : "row", gap: big ? 34 : 22, width: big ? 560 : 650}}>
       {[left, right].map((c, i) => (
         <div key={i} style={{flex: 1, ...useIn(i * 8)}}>
           <div style={{display: "inline-block", padding: "4px 16px", borderRadius: 999, background: "rgba(255,255,255,0.9)", color: "#222",
             fontSize: 24, fontWeight: 800, marginBottom: 12}}>{c.label}</div>
-          <Skeleton title={c.title} good={i === 1} />
+          <Skeleton title={c.title} good={i === 1} h={big ? 250 : 330} />
         </div>
       ))}
     </div>
@@ -70,29 +70,31 @@ export const Compare: React.FC<{left: {label: string; title: string}; right: {la
 );
 
 // Nodes joined by a line with a travelling pulse, then a status chip.
-export const Diagram: React.FC<{nodes: {label: string; sub?: string}[]; status?: string}> = ({nodes, status}) => {
+export const Diagram: React.FC<{nodes: {label: string; sub?: string}[]; status?: string; big?: boolean}> = ({nodes, status, big}) => {
   const f = useCurrentFrame();
   const pulse = (f % 30) / 30;
   return (
     <Center gap={34}>
-      <div style={{display: "flex", alignItems: "center"}}>
+      <div style={{display: "flex", flexDirection: big ? "column" : "row", alignItems: "center"}}>
         {nodes.map((n, i) => (
           <React.Fragment key={i}>
             {i > 0 && (
-              <div style={{width: 46, height: 4, background: "rgba(255,255,255,0.3)", position: "relative", margin: "0 4px"}}>
-                <i style={{position: "absolute", top: -4, left: `${pulse * 100}%`, width: 12, height: 12, borderRadius: 6, background: ACCENT[1]}} />
+              <div style={{background: "rgba(255,255,255,0.3)", position: "relative",
+                ...(big ? {width: 4, height: 40, margin: "4px 0"} : {width: 46, height: 4, margin: "0 4px"})}}>
+                <i style={{position: "absolute", width: 12, height: 12, borderRadius: 6, background: ACCENT[1],
+                  ...(big ? {left: -4, top: `${pulse * 100}%`} : {top: -4, left: `${pulse * 100}%`})}} />
               </div>
             )}
-            <Glass style={{width: nodes.length > 2 ? 190 : 250, padding: 18, ...useIn(i * 8)}}>
+            <Glass style={{width: big ? 380 : nodes.length > 2 ? 190 : 250, padding: 18, ...useIn(i * 8)}}>
               <div style={{width: 54, height: 54, borderRadius: 16, background: ACCENT[i % 4], color: "#111", fontSize: 30, fontWeight: 900,
                 display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 10px"}}>{n.label[0].toUpperCase()}</div>
-              <div style={{fontFamily: MONO, fontSize: 21}}>{n.label.length > 13 ? n.label.slice(0, 12) + "…" : n.label}</div>
-              {n.sub && <div style={{fontSize: 18, opacity: 0.6, marginTop: 4}}>{n.sub}</div>}
+              <div style={{fontFamily: MONO, fontSize: big ? 28 : 21}}>{n.label.length > 13 ? n.label.slice(0, 12) + "…" : n.label}</div>
+              {n.sub && <div style={{fontSize: big ? 24 : 18, opacity: 0.6, marginTop: 4}}>{n.sub}</div>}
             </Glass>
           </React.Fragment>
         ))}
       </div>
-      {status && <div style={{padding: "8px 22px", borderRadius: 999, background: "rgba(40,200,64,0.25)", fontFamily: MONO, fontSize: 26, ...useIn(22)}}>✓ {status}</div>}
+      {status && <div style={{padding: "8px 22px", borderRadius: 999, background: "rgba(40,200,64,0.25)", fontFamily: MONO, fontSize: big ? 28 : 26, ...useIn(22)}}>✓ {status}</div>}
     </Center>
   );
 };

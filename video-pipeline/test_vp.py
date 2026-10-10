@@ -10,8 +10,8 @@ edit, total = remap(W, keep)
 assert edit[-1]["s"] < 2.2 and abs(total - (2.08 + 0.76)) < 0.01, (edit, total)  # last word moved up by the cut
 
 c = chunk(edit, ["끝장"])
-assert [x["text"] for x in c] == ["클로드가 방금 웹", "디자이너들을 끝장냈어요"], c
-assert c[1]["hl"] == [1], c  # emphasis lands on the right word
+assert [x["text"] for x in c] == ["클로드가 방금 웹", "디자이너들을", "끝장냈어요"], c  # max 10 chars per caption
+assert c[2]["hl"] == [0], c  # emphasis lands on the right word
 
 # segment: a mis-heard word must not shift the sentence boundaries
 heard = ["hello", "everyone", "first", "the", "skils", "repo", "second", "playwrite", "mcp", "bye", "now"]
@@ -19,4 +19,5 @@ W = [{"w": w, "s": float(i), "e": i + 0.5} for i, w in enumerate(heard)]
 runs = segment(W, ["hello everyone", "first the skills repo", "second playwright mcp", "bye now"])
 assert runs == [(0, 2), (2, 6), (6, 9), (9, 11)], runs
 assert segment(W[:2], ["a", "b", "c"]) == [(0, 0), (0, 1), (1, 2)]  # too few words: even split, no crash
+assert [x["text"] for x in chunk(edit, [], breaks={2})] == ["클로드가 방금", "웹 디자이너들을", "끝장냈어요"]  # forced break at a sentence start
 print("ok")

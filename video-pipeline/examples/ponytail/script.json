@@ -1,0 +1,21 @@
+{
+  "lang": "ko",
+  "vocab": ["클로드", "포니테일", "Ponytail"],
+  "emphasis": ["너무", "10줄", "절반", "두 줄", "포니테일"],
+  "beats": [
+    {"say": "클로드가 코드를 너무 많이 짠다면?",
+     "visuals": [{"layout": "full", "kind": "title", "text": "코드, 너무 많이 짜죠?", "hl": ["너무"]}]},
+    {"say": "포니테일이면 335줄이 10줄이 돼요",
+     "visuals": [{"layout": "full", "kind": "compare", "left": {"label": "스킬 없이", "title": "335줄"}, "right": {"label": "포니테일", "title": "10줄"}}]},
+    {"say": "이미 있는 코드부터 재사용해요",
+     "visuals": [{"layout": "full", "kind": "list", "title": "이렇게 일해요", "items": ["이미 있는 코드부터 확인", "불필요한 추상화 금지", "검증·보안은 그대로"]}]},
+    {"say": "제작자 벤치마크로 코드가 절반 가까이 줄었어요",
+     "visuals": [{"layout": "full", "kind": "stat", "value": "−53%", "label": "코드량 · 제작자 벤치마크 기준"}]},
+    {"say": "설치는 클로드 코드에 명령 두 줄이면 끝",
+     "visuals": [{"layout": "full", "kind": "terminal", "title": "claude code", "cmd": "/plugin marketplace add DietrichGebert/ponytail", "lines": ["> /plugin install ponytail@ponytail"]}]},
+    {"say": "리뷰 감사 부채 점검 명령도 있어요",
+     "visuals": [{"layout": "full", "kind": "diagram", "nodes": [{"label": "review", "sub": "변경 점검"}, {"label": "audit", "sub": "저장소 전체"}, {"label": "debt", "sub": "미룬 것 목록"}], "status": "/ponytail-review · audit · debt"}]},
+    {"say": "댓글에 포니테일이라고 남겨주세요",
+     "visuals": [{"layout": "full", "kind": "title", "text": "댓글에 '포니테일'", "hl": ["포니테일"]}]}
+  ]
+}

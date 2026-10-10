@@ -17,19 +17,19 @@ const at = <T extends {s: number; e: number}>(xs: T[], t: number) => xs.findInde
 
 const FULL = 1280;
 const FACE: Record<string, React.CSSProperties> = {face: {top: 0, bottom: 0}, top: {top: TOP, bottom: 0}, bottom: {top: 0, height: 720}, full: {top: 0, bottom: 0}};
-const CAP: Record<string, number> = {face: 900, top: 820, bottom: 560, full: 1000};
+const CAP: Record<string, number> = {face: 900, top: 820, bottom: 560, full: 1090};
 const GFX_H: Record<string, number> = {top: TOP, bottom: FULL - 720, full: FULL};
 const GFX_TOP: Record<string, number> = {top: 0, bottom: 720, full: 0};
 
 const Body: React.FC<{sc: Scene; big: boolean}> = ({sc, big}) => {
   switch (sc.kind) {
-    case "repo": return <RepoCard url={sc.url ?? ""} title={sc.title} sub={sc.sub} badge={sc.badge} stats={sc.stats ?? []} cmd={sc.cmd} />;
-    case "terminal": return <TerminalWin title={sc.title} chip={sc.chip} cmd={sc.cmd} lines={sc.lines ?? []} />;
+    case "repo": return <RepoCard url={sc.url ?? ""} title={sc.title} sub={sc.sub} badge={sc.badge} stats={sc.stats ?? []} cmd={sc.cmd} big={big} />;
+    case "terminal": return <TerminalWin title={sc.title} chip={sc.chip} cmd={sc.cmd} lines={sc.lines ?? []} big={big} />;
     case "title": return <Title text={sc.text} hl={sc.hl} sub={sc.sub} big={big} />;
     case "stat": return <Stat value={sc.value} label={sc.label} big={big} />;
     case "list": return <Checklist title={sc.title} items={sc.items ?? []} big={big} />;
-    case "compare": return <Compare left={sc.left} right={sc.right} />;
-    case "diagram": return <Diagram nodes={sc.nodes ?? []} status={sc.status} />;
+    case "compare": return <Compare left={sc.left} right={sc.right} big={big} />;
+    case "diagram": return <Diagram nodes={sc.nodes ?? []} status={sc.status} big={big} />;
     case "doc": return <Doc title={sc.title} file={sc.file} steps={sc.steps ?? 5} tag={sc.tag} />;
     case "logos": return <Logos chips={sc.chips ?? []} label={sc.label} />;
     case "media": return <Media src={sc.src} />;
@@ -62,10 +62,12 @@ export const Reel: React.FC<Props> = ({video, captions, scenes}) => {
   return (
     <AbsoluteFill style={{background: "#000"}}>
       <div style={{position: "absolute", left: 0, right: 0, overflow: "hidden", ...FACE[lay]}}>
-        <OffthreadVideo
-          src={staticFile(video)}
-          style={{width: "100%", height: "100%", objectFit: "cover", transform: `scale(${zoom})`}}
-        />
+        {video && (
+          <OffthreadVideo
+            src={staticFile(video)}
+            style={{width: "100%", height: "100%", objectFit: "cover", transform: `scale(${zoom})`}}
+          />
+        )}
       </div>
       {scenes.map((sc, i) => (
         <Sequence key={i} from={Math.round(sc.s * fps)} durationInFrames={Math.max(1, Math.round((sc.e - sc.s) * fps))} layout="none">
@@ -74,7 +76,7 @@ export const Reel: React.FC<Props> = ({video, captions, scenes}) => {
       ))}
       {ci >= 0 && (
         <div style={{position: "absolute", left: 0, right: 0, top: CAP[lay], textAlign: "center",
-          fontFamily: FONT, fontSize: 68, fontWeight: 900, lineHeight: 1.25, padding: "0 40px"}}>
+          fontFamily: FONT, fontSize: 64, fontWeight: 900, lineHeight: 1.25, padding: "0 40px"}}>
           {captions[ci].text.split(" ").map((w, i) => (
             <span key={i} style={{color: captions[ci].hl.includes(i) ? HL : "#fff", marginRight: 14,
               WebkitTextStroke: "8px #000", paintOrder: "stroke fill"}}>{w}</span>

@@ -4,11 +4,11 @@ import {Glass, MONO, useIn, useTyped} from "./kit";
 export type Stat = {k: string; v: string};
 
 // GitHub-style repo card: url bar, logo, big title, stat boxes, typed install line.
-export const RepoCard: React.FC<{url: string; title: string; sub?: string; badge?: string; stats: Stat[]; cmd?: string}> =
-  ({url, title, sub, badge, stats, cmd}) => {
+export const RepoCard: React.FC<{url: string; title: string; sub?: string; badge?: string; stats: Stat[]; cmd?: string; big?: boolean}> =
+  ({url, title, sub, badge, stats, cmd, big}) => {
     const typed = useTyped(cmd ? `$ ${cmd}` : "", 22);
     return (
-      <Glass style={{position: "absolute", left: 36, right: 36, top: 56, padding: 30, height: 440}}>
+      <Glass style={{position: "absolute", left: 36, right: 36, top: big ? 300 : 56, padding: 30, height: 440}}>
         <div style={{display: "flex", justifyContent: "space-between", fontFamily: MONO, fontSize: 22, opacity: 0.75, ...useIn(0)}}>
           <span>⌥ {url}</span>
           {badge && <span style={{padding: "2px 14px", borderRadius: 10, background: "rgba(255,255,255,0.12)"}}>{badge}</span>}

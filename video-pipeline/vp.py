@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Reel pipeline. Each stage reads/writes <job>/manifest.json (contract: README.md).
-Usage: vp.py research JOB owner/repo.. | script JOB | intake JOB VIDEO | transcribe JOB | cuts JOB | captions JOB | scenes JOB | render JOB | run JOB VIDEO"""
+Usage: vp.py draft JOB (no footage, silent) | research JOB owner/repo.. | script JOB | intake JOB VIDEO | transcribe JOB | cuts JOB | captions JOB | scenes JOB | render JOB | run JOB VIDEO"""
 import glob, json, os, re, shutil, subprocess, sys, urllib.request
 from difflib import SequenceMatcher
 from pathlib import Path
@@ -54,7 +54,7 @@ def remap(words, keep):
     return out, off
 
 
-def chunk(words, emph, max_words=3, max_chars=14):
+def chunk(words, emph, max_words=3, max_chars=10, breaks=()):  # 10 hangul fit one caption line at 64px
     chunks, cur = [], []
 
     def flush():
@@ -63,8 +63,8 @@ def chunk(words, emph, max_words=3, max_chars=14):
                            "hl": [i for i, x in enumerate(cur) if any(k in x["w"] for k in emph)]})
             cur.clear()
 
-    for w in words:
-        if cur and (len(cur) >= max_words or len(" ".join(x["w"] for x in cur + [w])) > max_chars):
+    for n, w in enumerate(words):
+        if cur and (n in breaks or len(cur) >= max_words or len(" ".join(x["w"] for x in cur + [w])) > max_chars):
             flush()
         cur.append(w)
     flush()
@@ -179,7 +179,10 @@ def cuts(job):
 
 def captions(job):
     m = load(job)
-    m["captions"] = chunk(m["words_edit"], decisions(job).get("emphasis", []))
+    breaks, sj = (), Path(job) / "script.json"
+    if sj.exists():  # never let a caption straddle two script sentences
+        breaks = {i for i, _ in segment(m["words_edit"], [b["say"] for b in json.loads(sj.read_text())["beats"]])}
+    m["captions"] = chunk(m["words_edit"], decisions(job).get("emphasis", []), breaks=breaks)
     save(job, m)
 
 
@@ -219,6 +222,24 @@ def scenes(job):
     save(job, m)
 
 
+def draft(job, cps=6.0):
+    """No footage yet: time every beat by its script length so the graphics can be reviewed (silent).
+    Real speech later goes through `run`, which re-times everything from the audio."""
+    job = Path(job)
+    script(job)
+    words, t = [], 0.0
+    for b in json.loads((job / "script.json").read_text())["beats"]:
+        ws = b["say"].split()
+        d = max(2.2, len(b["say"].replace(" ", "")) / cps + 0.3)  # shortcut: flat chars/sec, real pacing differs
+        step = (d - 0.3) / len(ws)
+        words += [{"w": w, "s": round(t + k * step, 2), "e": round(t + (k + 1) * step, 2)} for k, w in enumerate(ws)]
+        t += d
+    save(job, {"line": "draft", "duration_edit": round(t, 2), "words_edit": words, "edited": ""})
+    captions(job)
+    scenes(job)
+    render(job)
+
+
 def render(job):
     m, job = load(job), Path(job).resolve()
     props = {"video": m["edited"], "duration": m["duration_edit"], "captions": m["captions"],
@@ -235,7 +256,9 @@ STAGES = {"transcribe": transcribe, "cuts": cuts, "captions": captions, "scenes"
 
 if __name__ == "__main__":
     cmd, job, *rest = sys.argv[1:]
-    if cmd == "intake":
+    if cmd == "draft":
+        draft(job)
+    elif cmd == "intake":
         intake(job, *rest)
     elif cmd == "research":
         research(job, *rest)
