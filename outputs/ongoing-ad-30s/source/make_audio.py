@@ -11,8 +11,8 @@ N = int(SR * DUR)
 buf = [0.0] * N
 
 # cue times in seconds, written against the scene windows in src/theme.ts
-TAPS = [0.5, 1.3, 1.9, 4.0, 4.15, 8.0, 8.85, 11.5, 12.6, 13.6, 14.7, 15.8, 26.0]
-DINGS = [19.4, 20.3, 21.3, 22.2, 17.3, 27.6]  # review checks, merge, final chime
+TAPS = [0.5, 1.3, 1.9, 4.2, 5.5, 8.6, 11.6, 13.0, 14.2, 24.4]  # S1 clips, S2 tab switches, S3 card switch, S4 phones + screen swap, S6 phone in
+DINGS = [19.5, 20.4, 21.3, 22.3, 17.3, 27.6]  # review checks, merge, final chime
 
 
 def add(t0, fn, length):
