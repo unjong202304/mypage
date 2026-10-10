@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Reel pipeline. Each stage reads/writes <job>/manifest.json (contract: README.md).
-Usage: vp.py draft JOB (no footage, silent) | research JOB owner/repo.. | script JOB | intake JOB VIDEO | transcribe JOB | cuts JOB | captions JOB | scenes JOB | render JOB | run JOB VIDEO"""
+Usage: vp.py keys [status] | voices | brief JOB "topic" [repo..] | write JOB | voice JOB | make JOB | draft JOB (silent) | research JOB owner/repo.. | script JOB | intake JOB VIDEO | transcribe JOB | cuts JOB | captions JOB | scenes JOB | render JOB | run JOB VIDEO"""
 import glob, json, os, re, shutil, subprocess, sys, urllib.request
 from difflib import SequenceMatcher
 from pathlib import Path
+
+import keys
 
 HERE = Path(__file__).parent
 
@@ -115,7 +117,7 @@ def research(job, *repos):
     for r in repos:
         item = have.setdefault(r, {"repo": r})
         try:
-            h = {"User-Agent": "vp"} | ({"Authorization": "Bearer " + os.environ["GITHUB_TOKEN"]} if "GITHUB_TOKEN" in os.environ else {})
+            h = {"User-Agent": "vp"} | ({"Authorization": "Bearer " + keys.get("GITHUB_TOKEN")} if keys.get("GITHUB_TOKEN") else {})
             d = json.load(urllib.request.urlopen(urllib.request.Request(f"https://api.github.com/repos/{r}", headers=h), timeout=15))
             item |= {"desc": d["description"], "stars": d["stargazers_count"], "url": d["html_url"]}
         except Exception as e:
@@ -254,21 +256,58 @@ def render(job):
 
 STAGES = {"transcribe": transcribe, "cuts": cuts, "captions": captions, "scenes": scenes, "render": render}
 
+
+def pipeline(job, src, line="human"):
+    intake(job, src, line)
+    for name, fn in STAGES.items():
+        print("->", name, flush=True)
+        fn(job)
+    print("done:", Path(job) / "final.mp4")
+
+
+def voice(job):
+    from lines import ai
+    script(job)
+    ai.produce((Path(job) / "script.txt").read_text(), Path(job) / "footage.mp4")
+
+
+def make(job):
+    """script (written if missing) -> AI voice -> the whole edit."""
+    import writer
+    if not (Path(job) / "script.json").exists():
+        writer.write(job, script)
+    voice(job)
+    pipeline(job, Path(job) / "footage.mp4", "ai")
+
+
 if __name__ == "__main__":
-    cmd, job, *rest = sys.argv[1:]
-    if cmd == "draft":
-        draft(job)
-    elif cmd == "intake":
-        intake(job, *rest)
-    elif cmd == "research":
-        research(job, *rest)
-    elif cmd == "script":
-        script(job)
-    elif cmd == "run":
-        intake(job, rest[0])
-        for name, fn in STAGES.items():
-            print("->", name, flush=True)
-            fn(job)
-        print("done:", Path(job) / "final.mp4")
+    cmd, *rest = sys.argv[1:]
+    if cmd == "keys":
+        keys.status() if rest[:1] == ["status"] else keys.setup()
+    elif cmd == "voices":
+        from lines import ai
+        ai.voices()
     else:
-        STAGES[cmd](job)
+        job, *rest = rest
+        if cmd == "brief":  # vp.py brief JOB "topic" [owner/repo ..]
+            import writer
+            writer.brief(job, rest[0], rest[1:])
+        elif cmd == "write":
+            import writer
+            writer.write(job, script)
+        elif cmd == "voice":
+            voice(job)
+        elif cmd == "make":
+            make(job)
+        elif cmd == "draft":
+            draft(job)
+        elif cmd == "intake":
+            intake(job, *rest)
+        elif cmd == "research":
+            research(job, *rest)
+        elif cmd == "script":
+            script(job)
+        elif cmd == "run":
+            pipeline(job, rest[0])
+        else:
+            STAGES[cmd](job)

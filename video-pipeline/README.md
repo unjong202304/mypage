@@ -32,10 +32,23 @@ vp.py run JOB footage.mp4          # ... -> scenes (visuals timed to the spoken 
 ./smoke.sh                         # whole chain with an espeak voice (English); mechanics only
 ```
 
+## Keys, AI voice, script writer
+```
+.venv/bin/python vp.py keys            # hidden-input prompts -> .env (owner-only, git-ignored); `keys status` shows what is set (last 4 only)
+.venv/bin/python vp.py voices          # list ElevenLabs voices (id | name | language) -> put the chosen id in ELEVENLABS_VOICE_ID
+.venv/bin/python vp.py brief JOB "topic" owner/repo ..   # writes JOB/brief.md: concept template + README facts (any agent can answer it)
+.venv/bin/python vp.py write JOB       # same brief answered by an LLM API (ANTHROPIC_API_KEY or DEEPSEEK_API_KEY) -> script.json, one retry
+.venv/bin/python vp.py voice JOB       # script -> ElevenLabs -> footage.mp4 (black 720x1280 + voice)
+.venv/bin/python vp.py make JOB        # write (if no script.json) -> voice -> the whole edit -> final.mp4
+```
+A real environment variable beats `.env`. In a cloud sandbox set the same names as environment variables and allow
+`api.elevenlabs.io` (and `api.deepseek.com` if used) in the network settings. `concepts/*.md` is the swappable topic template.
+`test_tools.py` checks all of this offline with fake responses; the live ElevenLabs / LLM calls have not been run.
+
 ## Two input lines (same contract: a local portrait mp4 with audio)
 - **Line B (human shoot)**: the host app (editing helper) already handles the OneDrive link, download and upload.
   It passes the downloaded path to `vp.py intake`, and uploads `<job>/final.mp4` (`manifest.output`) when done.
-- **Line A (AI)**: `lines/ai.py` is a stub. Higgsfield / ElevenLabs go there later.
+- **Line A (AI)**: `lines/ai.py` does the voice (ElevenLabs). Avatar/video (Higgsfield) is not built.
 
 ## Contract
 `manifest.json`: `line, raw, duration, lang, words[{w,s,e}], keep[[s,e]], edited, duration_edit, words_edit, captions[{s,e,text,hl[]}], output`
