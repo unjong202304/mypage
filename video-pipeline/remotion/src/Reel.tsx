@@ -2,7 +2,7 @@ import React from "react";
 import {AbsoluteFill, OffthreadVideo, staticFile, useCurrentFrame, useVideoConfig} from "remotion";
 
 type Cap = {s: number; e: number; text: string; hl: number[]};
-type Scene = {s: number; e: number; title: string; sub?: string};
+type Scene = {s: number; e: number; title: string; sub?: string; badge?: string};
 export type Props = {video: string; duration: number; captions: Cap[]; scenes: Scene[]};
 
 const FONT = '"Noto Sans CJK KR", Pretendard, sans-serif';
@@ -31,6 +31,7 @@ export const Reel: React.FC<Props> = ({video, captions, scenes}) => {
         <div style={{position: "absolute", top: 0, left: 0, right: 0, height: TOP, background: BG[si % BG.length],
           display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", padding: 48,
           fontFamily: FONT, color: "#fff", textAlign: "center", gap: 20}}>
+          {scenes[si].badge && <div style={{fontSize: 36, fontWeight: 700, color: "#ffd24a"}}>{scenes[si].badge}</div>}
           <div style={{fontSize: 64, fontWeight: 800, lineHeight: 1.2}}>{scenes[si].title}</div>
           {scenes[si].sub && <div style={{fontSize: 34, opacity: 0.75}}>{scenes[si].sub}</div>}
         </div>

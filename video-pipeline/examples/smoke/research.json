@@ -1,0 +1,5 @@
+[
+ {"repo": "anthropics/skills"},
+ {"repo": "microsoft/playwright-mcp"},
+ {"repo": "github/github-mcp-server"}
+]

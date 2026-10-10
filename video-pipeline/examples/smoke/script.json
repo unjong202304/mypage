@@ -1,0 +1,13 @@
+{
+  "lang": "en",
+  "hook": "Add these three things to Claude and your whole workflow changes",
+  "items": [
+    {"repo": "anthropics/skills", "anchor": "first", "say": "First, the official skills collection from Anthropic", "label": "Official Anthropic skill examples"},
+    {"repo": "microsoft/playwright-mcp", "anchor": "second", "say": "Second, Playwright MCP, which lets the model drive a browser", "label": "LLM-driven browser automation"},
+    {"repo": "github/github-mcp-server", "anchor": "third", "say": "Third, the GitHub MCP server, for repositories and issues", "label": "AI that works with repos and issues"}
+  ],
+  "result": "With these three, Claude can build and test things on its own",
+  "cta": "Comment install and I will send you the setup guide",
+  "vocab": ["Claude", "MCP", "Playwright"],
+  "emphasis": ["whole", "own", "install"]
+}
