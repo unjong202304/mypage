@@ -1,9 +1,9 @@
 import React from "react";
 import {AbsoluteFill, OffthreadVideo, Sequence, staticFile, useCurrentFrame, useVideoConfig} from "remotion";
-import {Backdrop, PushIn, SANS, Stepper} from "./scenes/kit";
+import {Backdrop, PushIn, SANS, Stepper, useIn} from "./scenes/kit";
 import {RepoCard, Stat} from "./scenes/RepoCard";
 import {TerminalWin} from "./scenes/TerminalWin";
-import {Checklist, Compare, Diagram, Doc, Logos, Media, Stat, Title} from "./scenes/more";
+import {Checklist, Compare, Diagram, Doc, Drop, Logos, LongShort, Media, Stat, Styles, Timeline, Title} from "./scenes/more";
 
 type Cap = {s: number; e: number; text: string; hl: number[]};
 type Scene = {s: number; e: number; layout?: "top" | "bottom" | "full"; kind?: string; [k: string]: any};
@@ -33,6 +33,10 @@ const Body: React.FC<{sc: Scene; big: boolean}> = ({sc, big}) => {
     case "doc": return <Doc title={sc.title} file={sc.file} steps={sc.steps ?? 5} tag={sc.tag} />;
     case "logos": return <Logos chips={sc.chips ?? []} label={sc.label} />;
     case "media": return <Media src={sc.src} />;
+    case "longshort": return <LongShort label={sc.label} />;
+    case "drop": return <Drop chip={sc.chip} file={sc.file} link={sc.link} />;
+    case "timeline": return <Timeline manual={sc.manual} auto={sc.auto} />;
+    case "styles": return <Styles items={sc.items} />;
     default: return <Title text={sc.title ?? sc.text ?? ""} sub={sc.sub} big={big} />;
   }
 };
@@ -41,10 +45,20 @@ const Panel: React.FC<{sc: Scene; i: number}> = ({sc, i}) => {
   const fps = useVideoConfig().fps;
   const dur = Math.round((sc.e - sc.s) * fps);
   const lay = sc.layout ?? "top";
+  const hin = useIn(0);
+  const hl = sc.headline;
   return (
     <div style={{position: "absolute", top: GFX_TOP[lay], left: 0, right: 0, height: GFX_H[lay], overflow: "hidden"}}>
       <Backdrop i={i}>
-        <PushIn dur={dur}><Body sc={sc} big={lay === "full"} /></PushIn>
+        {hl && (
+          <div style={{position: "absolute", left: 0, right: 0, top: 120, textAlign: "center", padding: "0 40px", fontFamily: FONT, wordBreak: "keep-all", ...hin}}>
+            <div style={{fontSize: 56, fontWeight: 900, lineHeight: 1.25}}>{hl.main}</div>
+            {hl.sub && <div style={{fontSize: 32, opacity: 0.75, marginTop: 12}}>{hl.sub}</div>}
+          </div>
+        )}
+        <div style={{position: "absolute", left: 0, right: 0, bottom: 0, top: hl ? 330 : 0}}>
+          <PushIn dur={dur}><Body sc={sc} big={lay === "full"} /></PushIn>
+        </div>
         {sc.step && <Stepper {...sc.step} />}
       </Backdrop>
     </div>
@@ -76,7 +90,7 @@ export const Reel: React.FC<Props> = ({video, captions, scenes}) => {
       ))}
       {ci >= 0 && (
         <div style={{position: "absolute", left: 0, right: 0, top: CAP[lay], textAlign: "center",
-          fontFamily: FONT, fontSize: 64, fontWeight: 900, lineHeight: 1.25, padding: "0 40px"}}>
+          fontFamily: FONT, fontSize: 64, fontWeight: 900, lineHeight: 1.25, padding: "0 40px", wordBreak: "keep-all"}}>
           {captions[ci].text.split(" ").map((w, i) => (
             <span key={i} style={{color: captions[ci].hl.includes(i) ? HL : "#fff", marginRight: 14,
               WebkitTextStroke: "8px #000", paintOrder: "stroke fill"}}>{w}</span>

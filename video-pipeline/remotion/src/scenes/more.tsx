@@ -1,11 +1,11 @@
 import React from "react";
 import {Img, interpolate, OffthreadVideo, staticFile, useCurrentFrame} from "remotion";
-import {Glass, MONO, useIn} from "./kit";
+import {Glass, MONO, useIn, useTyped} from "./kit";
 
 const ACCENT = ["#ffd24a", "#7cf0a8", "#8fb4ff", "#ff9d6e"];
 const Center: React.FC<{children: React.ReactNode; gap?: number}> = ({children, gap = 24}) => (
   <div style={{position: "absolute", inset: 0, display: "flex", flexDirection: "column", justifyContent: "center",
-    alignItems: "center", padding: "0 40px", gap, textAlign: "center"}}>{children}</div>
+    alignItems: "center", padding: "0 40px", gap, textAlign: "center", wordBreak: "keep-all"}}>{children}</div>
 );
 
 // Kinetic headline: words pop in one by one, `hl` words are tinted.
@@ -139,4 +139,96 @@ export const Logos: React.FC<{chips: string[]; label?: string}> = ({chips, label
 export const Media: React.FC<{src: string}> = ({src}) => {
   const st: React.CSSProperties = {position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover"};
   return /\.(mp4|webm|mov)$/i.test(src) ? <OffthreadVideo src={staticFile(src)} muted style={st} /> : <Img src={staticFile(src)} style={st} />;
+};
+
+const CL = {extrapolateLeft: "clamp", extrapolateRight: "clamp"} as const;
+const TICKS = "repeating-linear-gradient(90deg, rgba(255,255,255,0.10) 0 2px, transparent 2px 24px)";
+const Bar: React.FC<{children?: React.ReactNode}> = ({children}) => (
+  <div style={{position: "relative", height: 80, borderRadius: 16, background: "rgba(255,255,255,0.08)", backgroundImage: TICKS,
+    border: "1px solid rgba(255,255,255,0.15)"}}>{children}</div>
+);
+const Seg: React.FC<{a: number; b: number; i: number; at: number}> = ({a, b, i, at}) => {
+  const f = useCurrentFrame();
+  return <div style={{position: "absolute", top: 6, bottom: 6, left: `${a * 100}%`, width: `${(b - a) * 100}%`, borderRadius: 10,
+    background: ACCENT[i % 4], opacity: interpolate(f, [at, at + 6], [0, 1], CL)}} />;
+};
+
+// One long timeline bar, three clips pulled out of it as vertical shorts.
+export const LongShort: React.FC<{label?: string}> = ({label = "긴 영상"}) => (
+  <Center gap={34}>
+    <div style={{width: 620, ...useIn(0)}}>
+      <div style={{fontSize: 26, opacity: 0.7, marginBottom: 10, textAlign: "left"}}>{label}</div>
+      <Bar>{[[0.08, 0.2], [0.42, 0.54], [0.74, 0.86]].map(([a, b], i) => <Seg key={i} a={a} b={b} i={i} at={10 + i * 6} />)}</Bar>
+    </div>
+    <div style={{fontSize: 44, ...useIn(8)}}>↓</div>
+    <div style={{display: "flex", gap: 22}}>
+      {[0, 1, 2].map((i) => (
+        <div key={i} style={{width: 180, height: 320, borderRadius: 26, background: `linear-gradient(160deg, ${ACCENT[i]}, #1d1d28)`,
+          display: "flex", alignItems: "center", justifyContent: "center", fontSize: 54, color: "#111", ...useIn(16 + i * 6)}}>▶</div>
+      ))}
+    </div>
+  </Center>
+);
+
+// File or link in, nothing to install.
+export const Drop: React.FC<{chip?: string; file?: string; link?: string}> = ({chip, file = "interview.mp4", link = "https://youtube.com/watch?v=…"}) => {
+  const typed = useTyped(link, 16, 30);
+  return (
+    <Center gap={26}>
+      {chip && <div style={{padding: "6px 24px", borderRadius: 999, background: "rgba(40,200,64,0.25)", fontSize: 32, fontWeight: 800, ...useIn(0)}}>{chip}</div>}
+      <Glass style={{width: 600, padding: 26, textAlign: "left", ...useIn(4)}}>
+        <div style={{fontSize: 26, opacity: 0.7}}>파일 올리기</div>
+        <div style={{display: "flex", gap: 16, alignItems: "center", marginTop: 12}}>
+          <div style={{width: 60, height: 60, borderRadius: 14, background: ACCENT[2], color: "#111", fontWeight: 900, fontSize: 32,
+            display: "flex", alignItems: "center", justifyContent: "center"}}>↑</div>
+          <div style={{fontFamily: MONO, fontSize: 28}}>{file}</div>
+        </div>
+      </Glass>
+      <Glass style={{width: 600, padding: 26, textAlign: "left", ...useIn(10)}}>
+        <div style={{fontSize: 26, opacity: 0.7}}>링크 붙여넣기</div>
+        <div style={{fontFamily: MONO, fontSize: 26, marginTop: 14, padding: "12px 16px", borderRadius: 12, background: "rgba(0,0,0,0.4)", minHeight: 34}}>{typed}</div>
+      </Glass>
+    </Center>
+  );
+};
+
+// Pick the range yourself, or let the AI mark the good parts.
+export const Timeline: React.FC<{manual: string; auto: string}> = ({manual, auto}) => {
+  const f = useCurrentFrame();
+  const x = interpolate(f, [6, 40], [0.08, 0.5], CL);
+  return (
+    <Center gap={46}>
+      <div style={{width: 620, textAlign: "left", ...useIn(0)}}>
+        <div style={{fontSize: 32, fontWeight: 800, marginBottom: 12}}>{manual}</div>
+        <Bar><div style={{position: "absolute", top: 5, bottom: 5, left: `${x * 100}%`, width: "26%", border: `3px solid ${ACCENT[0]}`,
+          borderRadius: 10, background: "rgba(255,210,74,0.25)"}} /></Bar>
+      </div>
+      <div style={{width: 620, textAlign: "left", ...useIn(10)}}>
+        <div style={{fontSize: 32, fontWeight: 800, marginBottom: 12}}>{auto} <span style={{fontSize: 22, padding: "2px 12px", borderRadius: 8, background: "rgba(124,240,168,0.3)"}}>AI</span></div>
+        <Bar>{[[0.05, 0.17], [0.37, 0.5], [0.7, 0.84]].map(([a, b], i) => <Seg key={i} a={a} b={b} i={1} at={26 + i * 8} />)}</Bar>
+      </div>
+    </Center>
+  );
+};
+
+// Three caption looks; the middle one gets picked.
+export const Styles: React.FC<{items?: string[]}> = ({items = ["굵은 흰색", "형광 노랑", "네온 핑크"]}) => {
+  const f = useCurrentFrame();
+  const pick = f > 24 ? 1 : -1;
+  const look = [{c: "#fff", bg: "#111"}, {c: "#ffd24a", bg: "#1f1a05"}, {c: "#ff5fc8", bg: "#1a0b18"}];
+  return (
+    <Center gap={30}>
+      <div style={{display: "flex", gap: 18}}>
+        {items.slice(0, 3).map((t, i) => (
+          <div key={i} style={{width: 190, height: 300, borderRadius: 22, background: look[i].bg, display: "flex", flexDirection: "column",
+            justifyContent: "flex-end", padding: 16, textAlign: "left", transform: `scale(${pick === i ? 1.06 : 1})`,
+            border: `4px solid ${pick === i ? "#7cf0a8" : "rgba(255,255,255,0.15)"}`, ...useIn(i * 6)}}>
+            <div style={{fontSize: 36, fontWeight: 900, color: look[i].c, WebkitTextStroke: "4px #000", paintOrder: "stroke fill", lineHeight: 1.2}}>자막<br />스타일</div>
+            <div style={{fontSize: 20, opacity: 0.7, marginTop: 10}}>{t}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{fontSize: 34, fontWeight: 800, color: "#7cf0a8", ...useIn(28)}}>✓ 스타일 적용</div>
+    </Center>
+  );
 };

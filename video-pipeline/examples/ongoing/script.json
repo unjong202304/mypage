@@ -1,0 +1,19 @@
+{
+  "lang": "ko",
+  "vocab": ["온고잉", "숏폼", "쇼츠", "에디터"],
+  "emphasis": ["숏폼", "간편", "직접", "스타일", "검수", "온고잉"],
+  "beats": [
+    {"say": "긴 영상 하나로, 매력적인 숏폼을 만듭니다.",
+     "visuals": [{"layout": "full", "kind": "longshort", "headline": {"main": "긴 영상, 매력적인 숏폼으로."}}]},
+    {"say": "프로그램 설치 없이, 파일이나 링크만 넣으세요.",
+     "visuals": [{"layout": "full", "kind": "drop", "chip": "설치 없이", "headline": {"main": "파일도, 링크도 간편하게."}}]},
+    {"say": "원하는 구간을 직접 고르거나, 알아서 맡길 수도 있죠.",
+     "visuals": [{"layout": "full", "kind": "timeline", "manual": "직접 고르기", "auto": "알아서 맡기기", "headline": {"main": "직접 정하거나, 편하게 맡기거나."}}]},
+    {"say": "내 의도에 맞게 다듬고, 가장 어울리는 스타일을 입힙니다.",
+     "visuals": [{"layout": "full", "kind": "styles", "headline": {"main": "내가 원하는 장면과 스타일."}}]},
+    {"say": "쇼츠 엔진으로 정교하게, 전문 에디터가 꼼꼼히 검수합니다.",
+     "visuals": [{"layout": "full", "kind": "diagram", "nodes": [{"label": "쇼츠 엔진", "sub": "AI 편집"}, {"label": "전문 에디터", "sub": "꼼꼼한 검수"}], "status": "검수 완료", "headline": {"main": "AI로 돕고, 사람이 확인합니다."}}]},
+    {"say": "영상만 보내세요. 편집은 온고잉이 합니다.",
+     "visuals": [{"layout": "full", "kind": "title", "text": "영상은 보내고, 편집은 온고잉.", "hl": ["온고잉."], "sub": "전용 링크에서 시작하세요"}]}
+  ]
+}

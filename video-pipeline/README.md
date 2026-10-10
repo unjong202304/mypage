@@ -20,7 +20,8 @@ hook -> N numbered items -> result -> comment-CTA. `script.json` is a storyboard
 ```
 Each beat is matched to the transcript (tolerates mis-heard words); its visuals share the sentence's time equally, hard cuts.
 Kinds: `title{text,hl[],sub}` `stat{value,label}` `list{title,items[]}` `repo{repo,sub,cmd,stats[]}` `terminal{title,chip,cmd,lines[]}`
-`compare{left{label,title},right{..}}` `diagram{nodes[{label,sub}],status}` `doc{title,file,steps}` `logos{chips[],label}` `media{src}` (file in the job dir).
+`longshort{label}` `drop{chip,file,link}` `timeline{manual,auto}` `styles{items[]}` `compare{left{label,title},right{..}}` `diagram{nodes[{label,sub}],status}` `doc{title,file,steps}` `logos{chips[],label}` `media{src}` (file in the job dir).
+Any visual may carry `headline:{main,sub}` (big text above the graphic).
 `layout`: `top` graphic over face, `bottom` face over graphic, `full` graphic only (audio continues).
 
 ```
