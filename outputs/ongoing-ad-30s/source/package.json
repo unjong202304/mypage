@@ -1,0 +1,6 @@
+{
+  "name": "ongoing-ad-30s",
+  "private": true,
+  "scripts": {"audio": "python3 make_audio.py", "render": "bash render.sh"},
+  "dependencies": {"@remotion/cli": "4.0.534", "react": "^19.0.0", "react-dom": "^19.0.0", "remotion": "4.0.534"}
+}
