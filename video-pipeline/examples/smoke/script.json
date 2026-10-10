@@ -2,12 +2,52 @@
   "lang": "en",
   "hook": "Add these three things to Claude and your whole workflow changes",
   "items": [
-    {"repo": "anthropics/skills", "anchor": "first", "say": "First, the official skills collection from Anthropic", "label": "Official Anthropic skill examples"},
-    {"repo": "microsoft/playwright-mcp", "anchor": "second", "say": "Second, Playwright MCP, which lets the model drive a browser", "label": "LLM-driven browser automation"},
-    {"repo": "github/github-mcp-server", "anchor": "third", "say": "Third, the GitHub MCP server, for repositories and issues", "label": "AI that works with repos and issues"}
+    {
+      "repo": "anthropics/skills",
+      "anchor": "first",
+      "say": "First, the official skills collection from Anthropic",
+      "label": "Official Anthropic skill examples",
+      "scene": {
+        "kind": "repo",
+        "cmd": "npx skills add anthropics/skills"
+      }
+    },
+    {
+      "repo": "microsoft/playwright-mcp",
+      "anchor": "second",
+      "say": "Second, Playwright MCP, which lets the model drive a browser",
+      "label": "LLM-driven browser automation",
+      "scene": {
+        "kind": "terminal",
+        "title": "claude ~/site",
+        "chip": "/mcp",
+        "cmd": "/mcp",
+        "lines": [
+          "playwright connected"
+        ]
+      }
+    },
+    {
+      "repo": "github/github-mcp-server",
+      "anchor": "third",
+      "say": "Third, the GitHub MCP server, for repositories and issues",
+      "label": "AI that works with repos and issues",
+      "scene": {
+        "kind": "repo",
+        "cmd": "claude mcp add github"
+      }
+    }
   ],
   "result": "With these three, Claude can build and test things on its own",
   "cta": "Comment install and I will send you the setup guide",
-  "vocab": ["Claude", "MCP", "Playwright"],
-  "emphasis": ["whole", "own", "install"]
+  "vocab": [
+    "Claude",
+    "MCP",
+    "Playwright"
+  ],
+  "emphasis": [
+    "whole",
+    "own",
+    "install"
+  ]
 }

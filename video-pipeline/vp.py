@@ -181,12 +181,18 @@ def scenes(job):
     facts = {r["repo"]: r for r in json.loads((job / "research.json").read_text())} if (job / "research.json").exists() else {}
     sens, items = sentences(sc), sc["items"]
     spans = align(m["words_edit"], sens, range(1, 1 + len(items)), [i.get("anchor", "") for i in items], m["duration_edit"])
+    ordinals = {"ko": ["첫 번째", "두 번째", "세 번째"], "en": ["First", "Second", "Third"]}.get(sc.get("lang", "ko"), [])
+    labels = [i.get("title") or i["repo"].split("/")[-1] for i in items]
     m["scenes"] = []
-    for i, (s, e) in zip(items, spans):
+    for k, (i, (s, e)) in enumerate(zip(items, spans)):
         f = facts.get(i["repo"], {})
-        m["scenes"].append({"s": s, "e": e, "title": i.get("title") or i["repo"].split("/")[-1],
-                            "sub": i.get("label") or f.get("desc") or "",
-                            **({"badge": f"★ {f['stars'] / 1000:.1f}k" if f["stars"] >= 1000 else f"★ {f['stars']}"} if f.get("stars") is not None else {})})
+        stars = f.get("stars")
+        txt = None if stars is None else (f"{stars / 1000:.1f}k" if stars >= 1000 else str(stars))
+        m["scenes"].append({
+            "s": s, "e": e, "title": labels[k], "sub": i.get("label") or f.get("desc") or "", "url": f"github.com/{i['repo']}",
+            **({"badge": f"★ {txt}", "stats": [{"k": "stars", "v": txt}]} if txt else {}),
+            "step": {"ordinal": ordinals[k] if k < len(ordinals) else str(k + 1), "labels": labels, "active": k},
+            **i.get("scene", {})})  # per-item override: kind, stats, cmd, chip, lines
     save(job, m)
 
 
