@@ -1,8 +1,8 @@
 // 온고잉 33초 광고 — the user's own screen recording of the real intake flow, framed by motion graphics.
 // Picture follows the voice: every scene boundary is a narration line boundary (public/rec/narration_rec.json, written by
 // make_narration_rec.py), so no line is ever cut by a scene change or by the end of the video.
-// The recording uses a third-party music video, so prep_rec.py blurs every region showing it (embed, slider thumbnails,
-// template video zone), its title/channel, the pasted URL and the typed title. UI stays sharp.
+// The recording uses a third-party YouTube video; prep_rec.py blurs only what names its source (title/channel,
+// pasted URL, typed title). The video and the UI stay as recorded.
 // Motion: ease-out entrances (cubic-bezier .23,1,.32,1), no camera zoom, nothing scrolls; one authored device = the step rail.
 // Safe area: everything that matters sits in y 220..1450, x <= 940.
 import React from "react";
@@ -261,7 +261,7 @@ const Stage: React.FC = () => {
       <Focus box={[30, 1540, 850, 1600]} from={700} to={738} />
 
       {PRESSES.map(([a, x, y]) => <Press key={a} at={a} {...at(x, y)} />)}
-      <div style={abs({left: 72, top: 1462, fontSize: 20, color: "rgba(244,239,232,0.42)", opacity: f >= SC.link[0] && f < SC.end[0] ? 1 : 0})}>실제 접수 화면 녹화 · 원본 영상·제목·주소는 블러 처리</div>
+      <div style={abs({left: 72, top: 1462, fontSize: 20, color: "rgba(244,239,232,0.42)", opacity: f >= SC.link[0] && f < SC.end[0] ? 1 : 0})}>실제 접수 화면 녹화 · 원본 제목·주소는 블러 처리</div>
     </AbsoluteFill>
   );
 };
