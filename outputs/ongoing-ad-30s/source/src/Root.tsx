@@ -7,10 +7,12 @@ import {AdReal, REAL_FRAMES} from "./AdReal";
 import {TemplateShow} from "./TemplateShow";
 import {AdGem, GEM_FRAMES} from "./AdGem";
 import {AdOpus, OPUS_FRAMES} from "./AdOpus";
+import {AdRec, REC_FRAMES} from "./AdRec";
 import {FPS} from "./theme";
 
 export const Root: React.FC = () => (
   <>
+    <Composition id="AdRec" component={AdRec} width={1080} height={1920} fps={FPS} durationInFrames={REC_FRAMES} />
     <Composition id="AdFast30" component={AdFast} width={1080} height={1920} fps={FPS} durationInFrames={FPS * 30} defaultProps={{narration: false}} />
     <Composition id="AdEasy30" component={AdEasy} width={1080} height={1920} fps={FPS} durationInFrames={FPS * 30} defaultProps={{narration: false}} />
     <Composition id="AdReal" component={AdReal} width={1080} height={1920} fps={FPS} durationInFrames={REAL_FRAMES} defaultProps={{narration: false}} />
